@@ -1,4 +1,7 @@
-import { PagePlaceholder } from "@/components/ui/page-placeholder";
+import { notFound } from "next/navigation";
+import { ArticleBrowser } from "@/components/articles/article-browser";
+import { CATEGORIES } from "@/lib/constants";
+import type { NewsCategory } from "@/lib/news/types";
 
 type CategoryPageProps = {
   params: Promise<{
@@ -6,13 +9,23 @@ type CategoryPageProps = {
   }>;
 };
 
+export function generateStaticParams() {
+  return CATEGORIES.map((category) => ({ category: category.slug }));
+}
+
 export default async function CategoryPage({ params }: CategoryPageProps) {
   const { category } = await params;
+  const matchingCategory = CATEGORIES.find((item) => item.slug === category);
+
+  if (!matchingCategory) {
+    notFound();
+  }
 
   return (
-    <PagePlaceholder
-      title={`${category.charAt(0).toUpperCase()}${category.slice(1)} News`}
-      description="Category-specific feeds are scaffolded and ready for API integration."
+    <ArticleBrowser
+      category={matchingCategory.slug as NewsCategory}
+      description={`Latest ${matchingCategory.label.toLowerCase()} coverage from connected news providers.`}
+      title={`${matchingCategory.label} News`}
     />
   );
 }

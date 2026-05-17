@@ -110,11 +110,12 @@ export default function HomePage() {
         <aside className="flex flex-col gap-4">
           <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950">
             <SectionHeader title="Search" />
-            <form className="mt-4">
+            <form action="/search" className="mt-4">
               <label className="flex items-center gap-3 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-800 dark:bg-slate-900">
                 <Search className="size-4 text-slate-400" />
                 <input
                   className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-slate-400"
+                  name="q"
                   placeholder="Search topics, sources, summaries"
                   type="search"
                 />

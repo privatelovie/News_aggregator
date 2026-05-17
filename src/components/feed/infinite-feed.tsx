@@ -14,6 +14,7 @@ type FeedArticle = {
   summary: string | null;
   imageUrl: string | null;
   publishedAt: string;
+  url: string;
   recommendationScore?: number;
   scoreBreakdown?: unknown;
 };
@@ -153,6 +154,7 @@ function toArticlePreview(article: FeedArticle): ArticlePreview {
     summary: article.summary ?? "No summary available.",
     imageUrl: article.imageUrl ?? undefined,
     publishedAt: formatPublishedAt(article.publishedAt),
+    url: article.url,
     readTime: estimateReadTime(article.summary),
     trend:
       typeof article.recommendationScore === "number"

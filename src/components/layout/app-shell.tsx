@@ -4,7 +4,6 @@ import {
   Bookmark,
   Home,
   LogOut,
-  Menu,
   Moon,
   Newspaper,
   Search,
@@ -115,13 +114,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 Login
               </Link>
             )}
-            <button
-              aria-label="Open menu"
-              className="grid size-9 place-items-center rounded-md border border-slate-200 bg-white text-slate-600 shadow-sm md:hidden dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
-              type="button"
-            >
-              <Menu className="size-4" />
-            </button>
           </div>
         </div>
 
