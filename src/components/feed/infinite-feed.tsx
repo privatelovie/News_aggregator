@@ -55,6 +55,9 @@ export function InfiniteFeed() {
 
       const payload = (await response.json()) as {
         data?: FeedArticle[];
+        meta?: {
+          errors?: Array<{ message: string; provider: string }>;
+        };
       };
       const nextArticles = (payload.data ?? []).map(toArticlePreview);
       const pageSlice = nextArticles.slice(page * PAGE_SIZE, nextPage * PAGE_SIZE);
@@ -62,6 +65,15 @@ export function InfiniteFeed() {
       setArticles((current) => dedupeArticles([...current, ...pageSlice]));
       setPage(nextPage);
       setHasMore(pageSlice.length === PAGE_SIZE && nextPage < MAX_PAGES);
+
+      if (nextPage === 1 && pageSlice.length === 0) {
+        const providerErrors = payload.meta?.errors ?? [];
+        setError(
+          providerErrors.length > 0
+            ? providerErrors.map((error) => error.message).join(" ")
+            : "No feed articles are available yet."
+        );
+      }
     } catch (caughtError) {
       setError(
         caughtError instanceof Error
