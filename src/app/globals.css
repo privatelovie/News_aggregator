@@ -39,3 +39,21 @@ select,
 textarea {
   font: inherit;
 }
+
+@keyframes news-marquee {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.news-marquee {
+  animation: news-marquee 24s linear infinite;
+}
+
+.news-marquee:hover {
+  animation-play-state: paused;
+}

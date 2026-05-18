@@ -7,7 +7,11 @@ const quickLinks = [
   { label: "Sports", href: "/categories/sports" },
   { label: "Politics", href: "/categories/politics" },
   { label: "Business", href: "/categories/business" },
-  { label: "Science", href: "/categories/science" }
+  { label: "Science", href: "/categories/science" },
+  { label: "Health", href: "/search?q=health%20news" },
+  { label: "World", href: "/search?q=world%20news" },
+  { label: "Climate", href: "/search?q=climate%20news" },
+  { label: "Entertainment", href: "/search?q=entertainment%20news" }
 ];
 
 export default function HomePage() {
@@ -21,7 +25,7 @@ export default function HomePage() {
             <Sparkles className="size-4" />
             Neural News
           </p>
-          <h1 className="mt-6 max-w-4xl text-[clamp(3.25rem,8vw,8.75rem)] font-black uppercase leading-[0.86] tracking-normal text-[#2b0b64]">
+          <h1 className="mt-6 max-w-4xl text-[clamp(2.75rem,6vw,6.5rem)] font-black uppercase leading-[0.9] tracking-normal text-[#2b0b64]">
             News that fits your world.
           </h1>
           <p className="mt-6 max-w-2xl text-lg font-medium leading-8 text-slate-700">
@@ -81,9 +85,9 @@ export default function HomePage() {
       </section>
 
       <div className="overflow-hidden rounded-full border-[4px] border-black bg-[#ffd24a] py-2 text-black">
-        <div className="flex min-w-max gap-5 px-4 text-sm font-black uppercase italic">
-          {["Live news", "Personal feed", "Save articles", "Free summaries", "Regional coverage"].map((item) => (
-            <span className="flex items-center gap-5" key={item}>
+        <div className="news-marquee flex min-w-max gap-5 px-4 text-sm font-black uppercase italic">
+          {[...["Live news", "Personalized feed", "API analytics", "Save articles", "Free summaries", "Regional coverage"], ...["Live news", "Personalized feed", "API analytics", "Save articles", "Free summaries", "Regional coverage"]].map((item, index) => (
+            <span className="flex items-center gap-5" key={`${item}-${index}`}>
               {item}
               <Dot className="size-4 fill-black" />
             </span>

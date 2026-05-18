@@ -255,20 +255,20 @@ function SummaryDialog({
   title: string;
 }) {
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 px-4 backdrop-blur-sm">
-      <section className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[1.5rem] border-[5px] border-black bg-white p-5 shadow-[12px_12px_0_#ffd24a] dark:bg-slate-950">
+    <div className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/70 px-4 py-6 backdrop-blur-sm">
+      <section className="w-full max-w-2xl overflow-hidden rounded-[1.5rem] border-[5px] border-black bg-white shadow-[12px_12px_0_#ffd24a] dark:bg-slate-950">
         <div className="flex items-start justify-between gap-4">
-          <div>
+          <div className="min-w-0 p-5 pb-0">
             <p className="text-sm font-black uppercase text-[#2b0b64] dark:text-[#ffd24a]">
               Summary
             </p>
-            <h3 className="mt-2 text-xl font-black text-black dark:text-white">
+            <h3 className="mt-2 break-words text-xl font-black leading-tight text-black dark:text-white">
               {title}
             </h3>
           </div>
           <button
             aria-label="Close summary"
-            className="grid size-10 shrink-0 place-items-center rounded-full border-[3px] border-black bg-[#ffd24a] text-black"
+            className="mr-5 mt-5 grid size-10 shrink-0 place-items-center rounded-full border-[3px] border-black bg-[#ffd24a] text-black"
             onClick={onClose}
             type="button"
           >
@@ -276,12 +276,12 @@ function SummaryDialog({
           </button>
         </div>
 
-        <div className="mt-5 space-y-5 text-sm font-medium leading-6 text-slate-700 dark:text-slate-300">
+        <div className="mt-5 max-h-[65vh] space-y-5 overflow-y-auto border-t-[4px] border-black p-5 text-sm font-medium leading-6 text-slate-700 dark:text-slate-300">
           <div>
             <h4 className="font-semibold text-slate-950 dark:text-white">
               Three-line brief
             </h4>
-            <ul className="mt-2 space-y-2">
+            <ul className="mt-2 space-y-2 break-words">
               {summary.threeLineSummary.map((line) => (
                 <li key={line}>{line}</li>
               ))}
@@ -291,13 +291,13 @@ function SummaryDialog({
             <h4 className="font-semibold text-slate-950 dark:text-white">
               Explain simply
             </h4>
-            <p className="mt-2">{summary.explainSimply}</p>
+            <p className="mt-2 break-words">{summary.explainSimply}</p>
           </div>
           <div>
             <h4 className="font-semibold text-slate-950 dark:text-white">
               Key takeaways
             </h4>
-            <ul className="mt-2 list-disc space-y-1 pl-5">
+            <ul className="mt-2 list-disc space-y-1 break-words pl-5">
               {summary.keyTakeaways.map((takeaway) => (
                 <li key={takeaway}>{takeaway}</li>
               ))}
@@ -307,7 +307,7 @@ function SummaryDialog({
             <h4 className="font-semibold text-slate-950 dark:text-white">
               Why this matters
             </h4>
-            <p className="mt-2">{summary.whyThisMatters}</p>
+            <p className="mt-2 break-words">{summary.whyThisMatters}</p>
           </div>
         </div>
       </section>

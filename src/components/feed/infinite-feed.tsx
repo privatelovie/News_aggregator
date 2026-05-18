@@ -1,12 +1,12 @@
 "use client";
 
-import { RefreshCcw, Settings2 } from "lucide-react";
+import { Download, RefreshCcw, Settings2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArticleCard } from "@/components/articles/article-card";
 import { ArticleCardSkeleton } from "@/components/articles/article-card-skeleton";
 import { toArticlePreview } from "@/lib/articles/preview";
-import { CATEGORIES } from "@/lib/constants";
-import type { NewsCategory, UnifiedArticle } from "@/lib/news/types";
+import { FEED_TOPICS } from "@/lib/constants";
+import type { UnifiedArticle } from "@/lib/news/types";
 import type { ArticlePreview } from "@/types/article";
 
 type FeedArticle = UnifiedArticle & {
@@ -15,7 +15,7 @@ type FeedArticle = UnifiedArticle & {
 };
 
 type FeedPreferences = {
-  category: NewsCategory | "all";
+  topic: string;
   country: string;
 };
 
@@ -32,7 +32,7 @@ const regions = [
 ] as const;
 
 const defaultPreferences: FeedPreferences = {
-  category: "all",
+  topic: "all",
   country: "us"
 };
 
@@ -45,6 +45,7 @@ export function InfiniteFeed() {
   const [preferences, setPreferences] =
     useState<FeedPreferences>(defaultPreferences);
   const [showPreferences, setShowPreferences] = useState(false);
+  const [hasLoadedPreferences, setHasLoadedPreferences] = useState(false);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const hasLoadedInitialPage = useRef(false);
 
@@ -53,13 +54,24 @@ export function InfiniteFeed() {
 
     if (!stored) {
       setShowPreferences(true);
+      setHasLoadedPreferences(true);
       return;
     }
 
     try {
-      setPreferences({ ...defaultPreferences, ...JSON.parse(stored) });
+      const parsed = JSON.parse(stored) as Partial<FeedPreferences> & {
+        category?: string;
+      };
+
+      setPreferences({
+        ...defaultPreferences,
+        ...parsed,
+        topic: parsed.topic ?? parsed.category ?? defaultPreferences.topic
+      });
     } catch {
       setShowPreferences(true);
+    } finally {
+      setHasLoadedPreferences(true);
     }
   }, []);
 
@@ -77,9 +89,16 @@ export function InfiniteFeed() {
         pageSize: String(nextPage * PAGE_SIZE),
         country: preferences.country
       });
+      const selectedTopic = FEED_TOPICS.find(
+        (topic) => topic.value === preferences.topic
+      );
 
-      if (preferences.category !== "all") {
-        params.set("category", preferences.category);
+      if (selectedTopic?.type === "category") {
+        params.set("category", selectedTopic.value);
+      }
+
+      if (selectedTopic?.type === "query") {
+        params.set("q", selectedTopic.value);
       }
 
       const response = await fetch(`/api/feed?${params}`, {
@@ -123,13 +142,17 @@ export function InfiniteFeed() {
   }, [hasMore, isLoading, page, preferences]);
 
   useEffect(() => {
+    if (!hasLoadedPreferences) {
+      return;
+    }
+
     if (hasLoadedInitialPage.current) {
       return;
     }
 
     hasLoadedInitialPage.current = true;
     void loadNextPage();
-  }, [loadNextPage]);
+  }, [hasLoadedPreferences, loadNextPage]);
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
@@ -201,6 +224,8 @@ export function InfiniteFeed() {
         )}
       </div>
 
+      <FeedAnalyticsPanel articles={articles} preferences={preferences} />
+
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {articles.map((article) => (
           <ArticleCard article={article} key={article.id} />
@@ -257,15 +282,14 @@ function PreferencesForm({
           onChange={(event) =>
             setDraft((current) => ({
               ...current,
-              category: event.target.value as FeedPreferences["category"]
+              topic: event.target.value
             }))
           }
-          value={draft.category}
+          value={draft.topic}
         >
-          <option value="all">All topics</option>
-          {CATEGORIES.map((category) => (
-            <option key={category.slug} value={category.slug}>
-              {category.label}
+          {FEED_TOPICS.map((topic) => (
+            <option key={topic.value} value={topic.value}>
+              {topic.label}
             </option>
           ))}
         </select>
@@ -300,4 +324,155 @@ function PreferencesForm({
 
 function dedupeArticles(articles: ArticlePreview[]) {
   return Array.from(new Map(articles.map((article) => [article.id, article])).values());
+}
+
+function FeedAnalyticsPanel({
+  articles,
+  preferences
+}: {
+  articles: ArticlePreview[];
+  preferences: FeedPreferences;
+}) {
+  const categoryCounts = countBy(articles, (article) => article.category);
+  const sourceCounts = countBy(articles, (article) => article.source);
+  const providerCounts = countBy(articles, (article) =>
+    article.article?.providers.map((provider) => provider.name).join(", ") ||
+    "unknown"
+  );
+  const selectedTopic =
+    FEED_TOPICS.find((topic) => topic.value === preferences.topic)?.label ??
+    "All topics";
+  const topCategories = Object.entries(categoryCounts).sort((a, b) => b[1] - a[1]);
+  const topSources = Object.entries(sourceCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+  const total = Math.max(articles.length, 1);
+
+  function exportData() {
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      preferences: {
+        ...preferences,
+        topicLabel: selectedTopic
+      },
+      totals: {
+        articles: articles.length,
+        categories: categoryCounts,
+        providers: providerCounts,
+        sources: sourceCounts
+      },
+      articles: articles.map((article) => ({
+        id: article.id,
+        title: article.title,
+        source: article.source,
+        category: article.category,
+        publishedAt: article.publishedAt,
+        url: article.url
+      }))
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {
+      type: "application/json"
+    });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "news-feed-analytics.json";
+    anchor.click();
+    URL.revokeObjectURL(url);
+  }
+
+  return (
+    <section className="rounded-[1.5rem] border-[5px] border-black bg-white p-4 shadow-[8px_8px_0_#050505] dark:bg-slate-950">
+      <div className="flex flex-col gap-3 border-b-[4px] border-black pb-4 md:flex-row md:items-end md:justify-between">
+        <div>
+          <p className="text-sm font-black uppercase text-[#2b0b64] dark:text-[#ffd24a]">
+            Analyst panel
+          </p>
+          <h2 className="mt-1 text-3xl font-black uppercase text-black dark:text-white">
+            API data collected
+          </h2>
+        </div>
+        <button
+          className="inline-flex w-fit items-center gap-2 rounded-full border-[3px] border-black bg-[#ffd24a] px-4 py-2 text-sm font-black text-black transition hover:bg-white"
+          onClick={exportData}
+          type="button"
+        >
+          <Download className="size-4" />
+          Export JSON
+        </button>
+      </div>
+
+      <div className="mt-4 grid gap-4 lg:grid-cols-[0.8fr_1.2fr_1fr]">
+        <div className="rounded-2xl border-[3px] border-black bg-[#c9b8ff] p-4 text-black">
+          <p className="text-sm font-black uppercase">Collected articles</p>
+          <p className="mt-2 text-5xl font-black">{articles.length}</p>
+          <p className="mt-3 text-sm font-bold">
+            Topic: {selectedTopic} | Region: {preferences.country.toUpperCase()}
+          </p>
+        </div>
+
+        <div className="rounded-2xl border-[3px] border-black bg-white p-4 dark:bg-slate-950">
+          <p className="text-sm font-black uppercase text-black dark:text-white">
+            Category mix
+          </p>
+          <div className="mt-4 space-y-3">
+            {topCategories.length === 0 && (
+              <p className="text-sm font-bold text-slate-600 dark:text-slate-300">
+                Load articles to visualize category data.
+              </p>
+            )}
+            {topCategories.map(([category, count]) => (
+              <div key={category}>
+                <div className="flex justify-between text-xs font-black uppercase text-black dark:text-white">
+                  <span>{category}</span>
+                  <span>{count}</span>
+                </div>
+                <div className="mt-1 h-4 overflow-hidden rounded-full border-2 border-black bg-[#f4f0ff]">
+                  <div
+                    className="h-full bg-[#ffd24a]"
+                    style={{ width: `${Math.max(8, (count / total) * 100)}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-2xl border-[3px] border-black bg-white p-4 dark:bg-slate-950">
+          <p className="text-sm font-black uppercase text-black dark:text-white">
+            Top sources
+          </p>
+          <div className="mt-4 space-y-2">
+            {topSources.length === 0 && (
+              <p className="text-sm font-bold text-slate-600 dark:text-slate-300">
+                Sources appear once articles load.
+              </p>
+            )}
+            {topSources.map(([source, count]) => (
+              <div
+                className="flex items-center justify-between gap-3 rounded-full border-2 border-black px-3 py-2 text-sm font-black text-black dark:text-white"
+                key={source}
+              >
+                <span className="truncate">{source}</span>
+                <span className="rounded-full bg-[#ffd24a] px-2 py-0.5 text-black">
+                  {count}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function countBy(
+  articles: ArticlePreview[],
+  getKey: (article: ArticlePreview) => string
+) {
+  return articles.reduce<Record<string, number>>((counts, article) => {
+    const key = getKey(article);
+    counts[key] = (counts[key] ?? 0) + 1;
+    return counts;
+  }, {});
 }
