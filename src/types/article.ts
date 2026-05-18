@@ -1,3 +1,5 @@
+import type { UnifiedArticle } from "@/lib/news/types";
+
 export type NewsCategory =
   | "Tech"
   | "Sports"
@@ -16,4 +18,5 @@ export type ArticlePreview = {
   url?: string;
   readTime?: string;
   trend?: string;
+  article?: UnifiedArticle;
 };
