@@ -1,4 +1,4 @@
-import { ArrowRight, Search } from "lucide-react";
+import { ArrowRight, Dot, Search, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { LiveNewsSection } from "@/components/home/live-news-section";
 
@@ -12,29 +12,32 @@ const quickLinks = [
 
 export default function HomePage() {
   return (
-    <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-6 sm:px-6 lg:px-8">
-      <section className="grid min-h-[22rem] gap-6 border-b border-slate-200 pb-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-end dark:border-slate-800">
-        <div>
-          <p className="text-sm font-medium uppercase tracking-wide text-teal-600 dark:text-teal-300">
+    <main className="mx-auto flex w-full max-w-[86rem] flex-col gap-6 px-3 py-4 sm:px-5 lg:px-6">
+      <section className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_26rem]">
+        <div className="relative overflow-hidden rounded-[2rem] border-[5px] border-black bg-white p-5 shadow-[10px_10px_0_#050505] sm:p-7 lg:min-h-[32rem]">
+          <div className="absolute right-8 top-8 hidden h-44 w-44 rounded-full border-2 border-[#c9b8ff] lg:block" />
+          <div className="absolute bottom-12 right-16 hidden h-28 w-28 rounded-[2rem] border-[12px] border-[#c9b8ff] border-l-transparent border-t-transparent lg:block" />
+          <p className="inline-flex items-center gap-2 rounded-full border-2 border-black bg-[#ffd24a] px-4 py-2 text-sm font-black uppercase tracking-wide text-black">
+            <Sparkles className="size-4" />
             Neural News
           </p>
-          <h1 className="mt-4 max-w-4xl text-4xl font-semibold tracking-normal text-slate-950 dark:text-white sm:text-6xl">
-            Read the news that fits your interests and region.
+          <h1 className="mt-6 max-w-4xl text-[clamp(3.25rem,8vw,8.75rem)] font-black uppercase leading-[0.86] tracking-normal text-[#2b0b64]">
+            News that fits your world.
           </h1>
-          <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300">
-            Search live coverage, save important stories, summarize articles, and
-            tune your feed by topic and country.
+          <p className="mt-6 max-w-2xl text-lg font-medium leading-8 text-slate-700">
+            A live news board with topic tuning, regional coverage, saved reads,
+            and instant summaries when the story gets too dense.
           </p>
-          <div className="mt-6 flex flex-wrap gap-3">
+          <div className="mt-7 flex flex-wrap gap-3">
             <Link
-              className="inline-flex items-center gap-2 rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
+              className="inline-flex items-center gap-2 rounded-full border-[3px] border-black bg-black px-5 py-3 text-sm font-black text-white shadow-[4px_4px_0_#ffd24a] transition hover:-translate-y-0.5"
               href="/feed"
             >
               Personalize feed
               <ArrowRight className="size-4" />
             </Link>
             <Link
-              className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-900"
+              className="inline-flex items-center gap-2 rounded-full border-[3px] border-black bg-white px-5 py-3 text-sm font-black text-black transition hover:bg-[#ffd24a]"
               href="/search"
             >
               Search news
@@ -42,14 +45,18 @@ export default function HomePage() {
           </div>
         </div>
 
-        <aside className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+        <aside className="overflow-hidden rounded-[2rem] border-[5px] border-black bg-[#c9b8ff] shadow-[10px_10px_0_#050505]">
+          <div className="border-b-[5px] border-black bg-[#ffd24a] px-5 py-3 text-center text-sm font-black uppercase text-black">
+            Search and collect
+          </div>
+          <div className="p-5">
           <form action="/search">
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
+            <label className="block text-sm font-black uppercase text-black">
               Search live news
-              <span className="mt-3 flex items-center gap-3 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-800 dark:bg-slate-900">
-                <Search className="size-4 text-slate-400" />
+              <span className="mt-3 flex items-center gap-3 rounded-full border-[3px] border-black bg-white px-4 py-3">
+                <Search className="size-5 text-black" />
                 <input
-                  className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-slate-400"
+                  className="min-w-0 flex-1 bg-transparent text-sm font-semibold outline-none placeholder:text-slate-500"
                   name="q"
                   placeholder="Search topics, sources, summaries"
                   type="search"
@@ -61,7 +68,7 @@ export default function HomePage() {
           <div className="mt-5 flex flex-wrap gap-2">
             {quickLinks.map((link) => (
               <Link
-                className="rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50 dark:border-slate-800 dark:text-slate-200 dark:hover:bg-slate-900"
+                className="rounded-full border-[3px] border-black bg-white px-4 py-2 text-sm font-black text-black transition hover:bg-[#ffd24a]"
                 href={link.href}
                 key={link.href}
               >
@@ -69,8 +76,20 @@ export default function HomePage() {
               </Link>
             ))}
           </div>
+          </div>
         </aside>
       </section>
+
+      <div className="overflow-hidden rounded-full border-[4px] border-black bg-[#ffd24a] py-2 text-black">
+        <div className="flex min-w-max gap-5 px-4 text-sm font-black uppercase italic">
+          {["Live news", "Personal feed", "Save articles", "Free summaries", "Regional coverage"].map((item) => (
+            <span className="flex items-center gap-5" key={item}>
+              {item}
+              <Dot className="size-4 fill-black" />
+            </span>
+          ))}
+        </div>
+      </div>
 
       <LiveNewsSection />
     </main>

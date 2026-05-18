@@ -84,37 +84,37 @@ export function ArticleBrowser({
   }, [endpoint]);
 
   return (
-    <main className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
-      <section className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,28rem)] lg:items-end">
+    <main className="mx-auto flex w-full max-w-[86rem] flex-col gap-6 px-3 py-5 sm:px-5 lg:px-6">
+      <section className="grid gap-5 rounded-[2rem] border-[5px] border-black bg-white p-5 shadow-[10px_10px_0_#050505] lg:grid-cols-[minmax(0,1fr)_minmax(18rem,28rem)] lg:items-end dark:bg-slate-950">
         <div>
-          <p className="text-sm font-medium uppercase tracking-wide text-teal-600 dark:text-teal-300">
+          <p className="text-sm font-black uppercase tracking-wide text-[#2b0b64] dark:text-[#ffd24a]">
             Discover
           </p>
-          <h1 className="mt-3 text-4xl font-semibold text-slate-950 dark:text-white">
+          <h1 className="mt-3 text-5xl font-black uppercase tracking-normal text-black dark:text-white">
             {title}
           </h1>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300">
+          <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-slate-700 dark:text-slate-300">
             {description}
           </p>
         </div>
 
         <form
-          className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white p-2 shadow-sm dark:border-slate-800 dark:bg-slate-950"
+          className="flex items-center gap-2 rounded-full border-[4px] border-black bg-[#c9b8ff] p-2 shadow-[4px_4px_0_#050505]"
           onSubmit={(event) => {
             event.preventDefault();
             setSubmittedQuery(query);
           }}
         >
-          <Search className="ml-2 size-4 shrink-0 text-slate-400" />
+          <Search className="ml-2 size-5 shrink-0 text-black" />
           <input
-            className="min-w-0 flex-1 bg-transparent px-1 py-2 text-sm outline-none placeholder:text-slate-400"
+            className="min-w-0 flex-1 bg-transparent px-1 py-2 text-sm font-bold text-black outline-none placeholder:text-black/60"
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search topics, sources, summaries"
             type="search"
             value={query}
           />
           <button
-            className="rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
+            className="rounded-full bg-black px-5 py-2 text-sm font-black text-white shadow-sm transition hover:bg-[#2b0b64]"
             type="submit"
           >
             Search
@@ -123,7 +123,7 @@ export function ArticleBrowser({
       </section>
 
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200">
+        <div className="rounded-[1.5rem] border-[4px] border-black bg-[#ffd24a] p-4 text-sm font-bold text-black">
           {error}
         </div>
       )}
@@ -139,7 +139,7 @@ export function ArticleBrowser({
       </section>
 
       {!isLoading && !error && articles.length === 0 && (
-        <p className="rounded-lg border border-slate-200 bg-white p-5 text-sm text-slate-600 shadow-sm dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300">
+        <p className="rounded-[1.5rem] border-[4px] border-black bg-white p-5 text-sm font-bold text-black shadow-[6px_6px_0_#050505]">
           No articles matched your search.
         </p>
       )}

@@ -105,13 +105,13 @@ export function ArticleCard({ article }: { article: ArticlePreview }) {
   }
 
   const title = (
-    <h2 className="mt-4 text-xl font-semibold tracking-normal text-slate-950 transition group-hover/link:text-teal-700 dark:text-white dark:group-hover/link:text-teal-300">
+    <h2 className="mt-4 text-2xl font-black leading-tight tracking-normal text-black transition group-hover/link:text-[#2b0b64] dark:text-white dark:group-hover/link:text-[#ffd24a]">
       {article.title}
     </h2>
   );
 
   return (
-    <article className="group flex min-h-[28rem] flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg dark:border-slate-800 dark:bg-slate-950">
+    <article className="group flex min-h-[30rem] flex-col overflow-hidden rounded-[1.5rem] border-[4px] border-black bg-white shadow-[6px_6px_0_#050505] transition hover:-translate-y-1 hover:shadow-[10px_10px_0_#050505] dark:bg-slate-950">
       {article.url ? (
         <a
           className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
@@ -126,9 +126,9 @@ export function ArticleCard({ article }: { article: ArticlePreview }) {
       )}
 
       <div className="flex flex-1 flex-col p-5">
-        <div className="flex items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
-          <span className="truncate">{article.source}</span>
-          <span className="flex shrink-0 items-center gap-1">
+        <div className="flex items-center justify-between gap-3 text-xs font-black uppercase text-slate-600 dark:text-slate-300">
+          <span className="truncate rounded-full bg-[#ffd24a] px-3 py-1 text-black">{article.source}</span>
+          <span className="flex shrink-0 items-center gap-1 rounded-full border-2 border-black px-3 py-1 text-black dark:border-white dark:text-white">
             <Clock className="size-3.5" />
             {article.readTime ?? "4 min"}
           </span>
@@ -147,25 +147,25 @@ export function ArticleCard({ article }: { article: ArticlePreview }) {
           title
         )}
 
-        <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
+        <p className="mt-3 line-clamp-3 text-sm font-medium leading-6 text-slate-700 dark:text-slate-300">
           {article.summary}
         </p>
 
         {message && (
-          <p className="mt-4 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-200">
+          <p className="mt-4 rounded-xl border-[3px] border-black bg-[#ffd24a] px-3 py-2 text-xs font-bold text-black">
             {message}
           </p>
         )}
 
         <div className="mt-auto flex items-center justify-between gap-3 pt-5">
-          <span className="flex min-w-0 items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400">
-            <Sparkles className="size-4 shrink-0 text-teal-500" />
+          <span className="flex min-w-0 items-center gap-1.5 text-sm font-bold text-slate-600 dark:text-slate-300">
+            <Sparkles className="size-4 shrink-0 text-[#2b0b64] dark:text-[#ffd24a]" />
             <span className="truncate">{article.publishedAt}</span>
           </span>
           <div className="flex shrink-0 items-center gap-2">
             <button
               aria-label="Summarize article"
-              className="grid size-9 place-items-center rounded-md border border-slate-200 text-slate-600 transition hover:border-teal-700 hover:bg-teal-700 hover:text-white disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800 dark:text-slate-300"
+              className="grid size-10 place-items-center rounded-full border-[3px] border-black bg-white text-black transition hover:bg-[#c9b8ff] disabled:cursor-not-allowed disabled:opacity-50"
               disabled={!canUseArticleActions || isSummarizing}
               onClick={summarizeArticle}
               title="Summarize"
@@ -179,7 +179,7 @@ export function ArticleCard({ article }: { article: ArticlePreview }) {
             </button>
             <button
               aria-label="Save article"
-              className="grid size-9 place-items-center rounded-md border border-slate-200 text-slate-600 transition hover:border-slate-950 hover:bg-slate-950 hover:text-white disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800 dark:text-slate-300 dark:hover:border-white dark:hover:bg-white dark:hover:text-slate-950"
+              className="grid size-10 place-items-center rounded-full border-[3px] border-black bg-white text-black transition hover:bg-[#ffd24a] disabled:cursor-not-allowed disabled:opacity-50"
               disabled={!canUseArticleActions || isSaving}
               onClick={saveArticle}
               title="Save"
@@ -196,7 +196,7 @@ export function ArticleCard({ article }: { article: ArticlePreview }) {
             {article.url && (
               <a
                 aria-label="Open article"
-                className="grid size-9 place-items-center rounded-md border border-slate-200 text-slate-600 transition hover:border-slate-950 hover:bg-slate-950 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 dark:border-slate-800 dark:text-slate-300 dark:hover:border-white dark:hover:bg-white dark:hover:text-slate-950"
+                className="grid size-10 place-items-center rounded-full border-[3px] border-black bg-black text-white transition hover:bg-[#2b0b64] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ffd24a]"
                 href={article.url}
                 rel="noreferrer"
                 target="_blank"
@@ -218,7 +218,7 @@ export function ArticleCard({ article }: { article: ArticlePreview }) {
 
 function ArticleImage({ article }: { article: ArticlePreview }) {
   return (
-    <div className="relative aspect-[16/9] overflow-hidden bg-slate-100 dark:bg-slate-900">
+    <div className="relative aspect-[16/10] overflow-hidden border-b-[4px] border-black bg-[#c9b8ff]">
       {article.imageUrl ? (
         <Image
           alt=""
@@ -228,15 +228,15 @@ function ArticleImage({ article }: { article: ArticlePreview }) {
           src={article.imageUrl}
         />
       ) : (
-        <div className="h-full w-full bg-gradient-to-br from-slate-100 via-white to-teal-100 dark:from-slate-900 dark:via-slate-950 dark:to-teal-950" />
+        <div className="h-full w-full bg-[repeating-linear-gradient(135deg,#fff_0,#fff_12px,#f4f0ff_12px,#f4f0ff_24px)]" />
       )}
-      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
       <div className="absolute bottom-3 left-3 flex flex-wrap items-center gap-2">
-        <span className="rounded-md bg-white/90 px-2.5 py-1 text-xs font-medium text-slate-950 shadow-sm">
+        <span className="rounded-full border-2 border-black bg-white px-3 py-1 text-xs font-black uppercase text-black shadow-sm">
           {article.category}
         </span>
         {article.trend && (
-          <span className="rounded-md bg-teal-300/95 px-2.5 py-1 text-xs font-medium text-slate-950 shadow-sm">
+          <span className="rounded-full border-2 border-black bg-[#ffd24a] px-3 py-1 text-xs font-black text-black shadow-sm">
             {article.trend}
           </span>
         )}
@@ -255,20 +255,20 @@ function SummaryDialog({
   title: string;
 }) {
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/60 px-4 backdrop-blur-sm">
-      <section className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg border border-slate-200 bg-white p-5 shadow-xl dark:border-slate-800 dark:bg-slate-950">
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 px-4 backdrop-blur-sm">
+      <section className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[1.5rem] border-[5px] border-black bg-white p-5 shadow-[12px_12px_0_#ffd24a] dark:bg-slate-950">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-sm font-medium text-teal-700 dark:text-teal-300">
-              AI summary
+            <p className="text-sm font-black uppercase text-[#2b0b64] dark:text-[#ffd24a]">
+              Summary
             </p>
-            <h3 className="mt-2 text-xl font-semibold text-slate-950 dark:text-white">
+            <h3 className="mt-2 text-xl font-black text-black dark:text-white">
               {title}
             </h3>
           </div>
           <button
             aria-label="Close summary"
-            className="grid size-9 shrink-0 place-items-center rounded-md border border-slate-200 text-slate-600 dark:border-slate-800 dark:text-slate-300"
+            className="grid size-10 shrink-0 place-items-center rounded-full border-[3px] border-black bg-[#ffd24a] text-black"
             onClick={onClose}
             type="button"
           >
@@ -276,7 +276,7 @@ function SummaryDialog({
           </button>
         </div>
 
-        <div className="mt-5 space-y-5 text-sm leading-6 text-slate-700 dark:text-slate-300">
+        <div className="mt-5 space-y-5 text-sm font-medium leading-6 text-slate-700 dark:text-slate-300">
           <div>
             <h4 className="font-semibold text-slate-950 dark:text-white">
               Three-line brief

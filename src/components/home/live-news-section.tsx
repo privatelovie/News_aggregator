@@ -71,18 +71,18 @@ export function LiveNewsSection() {
   }, []);
 
   return (
-    <section className="space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <section className="space-y-4 rounded-[2rem] border-[5px] border-black bg-white p-4 shadow-[10px_10px_0_#050505] sm:p-5 dark:bg-slate-950">
+      <div className="flex flex-col gap-3 border-b-[5px] border-black pb-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-sm font-medium uppercase tracking-wide text-teal-600 dark:text-teal-300">
+          <p className="text-sm font-black uppercase tracking-wide text-[#2b0b64] dark:text-[#ffd24a]">
             Live coverage
           </p>
-          <h2 className="mt-2 text-3xl font-semibold text-slate-950 dark:text-white">
+          <h2 className="mt-2 text-4xl font-black uppercase tracking-normal text-black dark:text-white">
             Latest stories
           </h2>
         </div>
         <Link
-          className="text-sm font-medium text-slate-600 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white"
+          className="w-fit rounded-full border-[3px] border-black bg-[#ffd24a] px-4 py-2 text-sm font-black text-black transition hover:bg-white"
           href="/feed"
         >
           Open personalized feed
@@ -90,7 +90,7 @@ export function LiveNewsSection() {
       </div>
 
       {error && (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-200">
+        <div className="rounded-2xl border-[3px] border-black bg-[#ffd24a] p-4 text-sm font-semibold text-black">
           {error}
         </div>
       )}

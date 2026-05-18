@@ -34,26 +34,27 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div
       className={cn(
-        "min-h-screen bg-[radial-gradient(circle_at_top_left,#ccfbf1_0,transparent_28rem),linear-gradient(180deg,#f8fafc,#eef2ff_42%,#f8fafc)] dark:bg-[radial-gradient(circle_at_top_left,#134e4a_0,transparent_26rem),linear-gradient(180deg,#020617,#111827_48%,#020617)]",
+        "min-h-screen bg-[#f4f0ff] p-2 text-slate-950 sm:p-4 dark:bg-[#050505] dark:text-white",
         isDark && "dark"
       )}
     >
-      <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/85 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/85">
-        <div className="mx-auto flex min-h-16 w-full max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
-          <Link className="flex items-center gap-2 font-semibold" href="/">
-            <span className="grid size-9 place-items-center rounded-md bg-slate-950 text-white shadow-sm dark:bg-white dark:text-slate-950">
+      <div className="mx-auto min-h-[calc(100vh-1rem)] max-w-[92rem] overflow-hidden rounded-[1.75rem] border-[6px] border-black bg-[#f8f5ff] shadow-[0_24px_80px_rgba(0,0,0,0.28)] dark:bg-slate-950">
+        <header className="sticky top-2 z-40 bg-black px-3 py-3 text-white sm:top-4 sm:px-5">
+          <div className="mx-auto flex min-h-14 w-full max-w-[86rem] items-center justify-between gap-3">
+          <Link className="flex items-center gap-2 text-lg font-black tracking-tight" href="/">
+            <span className="grid size-9 place-items-center rounded-md bg-white text-black shadow-sm">
               <Newspaper className="size-5" />
             </span>
-            <span className="tracking-normal">Neural News</span>
+            <span>Neural News</span>
           </Link>
 
-          <nav className="hidden items-center rounded-lg border border-slate-200 bg-slate-50 p-1 md:flex dark:border-slate-800 dark:bg-slate-900/70">
+          <nav className="hidden items-center gap-2 md:flex">
             {navItems.map((item) => (
               <Link
                 className={cn(
-                  "flex items-center gap-2 rounded-md px-3 py-2 text-sm text-slate-600 transition hover:bg-white hover:text-slate-950 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white",
+                  "flex items-center gap-2 rounded-full border-2 border-white/30 px-5 py-2 text-sm font-semibold text-white transition hover:border-white hover:bg-white hover:text-black",
                   pathname === item.href &&
-                    "bg-white text-slate-950 shadow-sm dark:bg-slate-800 dark:text-white"
+                    "border-[#ffd24a] bg-[#ffd24a] text-black shadow-[0_0_0_3px_rgba(255,210,74,0.25)]"
                 )}
                 href={item.href}
                 key={item.href}
@@ -66,22 +67,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
           <div className="flex items-center gap-2">
             <Link
-              className="hidden min-w-52 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-500 shadow-sm transition hover:border-slate-300 lg:flex dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400"
+              className="hidden min-w-52 items-center gap-2 rounded-full border-2 border-white/30 bg-black px-4 py-2 text-sm text-white transition hover:border-white lg:flex"
               href="/search"
             >
               <Search className="size-4" />
-              Search signals, sources, topics
+              Search news
             </Link>
             <Link
               aria-label="Search"
-              className="grid size-9 place-items-center rounded-md border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 lg:hidden"
+              className="grid size-10 place-items-center rounded-full border-2 border-white/30 bg-black text-white transition hover:border-white lg:hidden"
               href="/search"
             >
               <Search className="size-4" />
             </Link>
             <button
               aria-label="Toggle dark mode"
-              className="grid size-9 place-items-center rounded-md border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+              className="grid size-10 place-items-center rounded-full border-2 border-white/30 bg-black text-white transition hover:border-white"
               onClick={toggleTheme}
               type="button"
             >
@@ -91,7 +92,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <>
                 <Link
                   aria-label="Profile"
-                  className="hidden size-9 place-items-center rounded-md border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 sm:grid"
+                  className="hidden size-10 place-items-center rounded-full border-2 border-white/30 bg-black text-white transition hover:border-white sm:grid"
                   href="/profile"
                   title={session.user?.email ?? "Profile"}
                 >
@@ -99,7 +100,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </Link>
                 <button
                   aria-label="Sign out"
-                  className="grid size-9 place-items-center rounded-md bg-slate-950 text-white shadow-sm transition hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
+                  className="grid size-10 place-items-center rounded-full bg-[#ffd24a] text-black shadow-sm transition hover:bg-white"
                   onClick={() => signOut({ callbackUrl: "/" })}
                   type="button"
                 >
@@ -108,7 +109,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </>
             ) : (
               <Link
-                className="rounded-md bg-slate-950 px-3 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
+                className="rounded-full bg-[#ffd24a] px-5 py-2 text-sm font-bold text-black shadow-sm transition hover:bg-white"
                 href="/login"
               >
                 Login
@@ -117,13 +118,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
 
-        <nav className="no-scrollbar mx-auto flex w-full max-w-7xl gap-2 overflow-x-auto px-4 pb-3 sm:px-6 md:hidden">
+        <nav className="no-scrollbar mx-auto flex w-full max-w-[86rem] gap-2 overflow-x-auto pb-1 pt-3 md:hidden">
           {navItems.map((item) => (
             <Link
               className={cn(
-                "flex shrink-0 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300",
+                "flex shrink-0 items-center gap-2 rounded-full border-2 border-white/30 px-4 py-2 text-sm font-semibold text-white",
                 pathname === item.href &&
-                  "border-slate-950 text-slate-950 dark:border-white dark:text-white"
+                  "border-[#ffd24a] bg-[#ffd24a] text-black"
               )}
               href={item.href}
               key={item.href}
@@ -133,9 +134,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </Link>
           ))}
         </nav>
-      </header>
+        </header>
 
-      {children}
+        {children}
+      </div>
     </div>
   );
 }

@@ -173,19 +173,19 @@ export function InfiniteFeed() {
 
   return (
     <section className="space-y-5">
-      <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+      <div className="rounded-[1.5rem] border-[5px] border-black bg-[#c9b8ff] p-4 shadow-[8px_8px_0_#050505]">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <div className="flex items-center gap-2 text-sm font-medium text-teal-700 dark:text-teal-300">
+            <div className="flex items-center gap-2 text-sm font-black uppercase text-black">
               <Settings2 className="size-4" />
               Feed preferences
             </div>
-            <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+            <p className="mt-2 text-sm font-medium text-black/75">
               Choose the topic and region you want prioritized in your feed.
             </p>
           </div>
           <button
-            className="w-fit rounded-md border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-800 dark:text-slate-200 dark:hover:bg-slate-900"
+            className="w-fit rounded-full border-[3px] border-black bg-white px-4 py-2 text-sm font-black text-black transition hover:bg-[#ffd24a]"
             onClick={() => setShowPreferences((current) => !current)}
             type="button"
           >
@@ -209,10 +209,10 @@ export function InfiniteFeed() {
       </div>
 
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200">
+        <div className="rounded-[1.5rem] border-[4px] border-black bg-[#ffd24a] p-4 text-sm font-bold text-black">
           <p>{error}</p>
           <button
-            className="mt-3 inline-flex items-center gap-2 rounded-md bg-red-700 px-3 py-2 text-white"
+            className="mt-3 inline-flex items-center gap-2 rounded-full bg-black px-4 py-2 text-white"
             onClick={() => void loadNextPage()}
             type="button"
           >
@@ -225,7 +225,7 @@ export function InfiniteFeed() {
       <div ref={sentinelRef} />
 
       {!hasMore && articles.length > 0 && (
-        <p className="text-center text-sm text-slate-500 dark:text-slate-400">
+        <p className="rounded-full border-[3px] border-black bg-white px-4 py-2 text-center text-sm font-black text-black">
           You are caught up.
         </p>
       )}
@@ -250,10 +250,10 @@ function PreferencesForm({
         onSave(draft);
       }}
     >
-      <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
+      <label className="text-sm font-black uppercase text-black">
         Topic
         <select
-          className="mt-2 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-800 dark:bg-slate-950"
+          className="mt-2 w-full rounded-full border-[3px] border-black bg-white px-4 py-3 text-sm font-bold text-black"
           onChange={(event) =>
             setDraft((current) => ({
               ...current,
@@ -271,10 +271,10 @@ function PreferencesForm({
         </select>
       </label>
 
-      <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
+      <label className="text-sm font-black uppercase text-black">
         Region
         <select
-          className="mt-2 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-800 dark:bg-slate-950"
+          className="mt-2 w-full rounded-full border-[3px] border-black bg-white px-4 py-3 text-sm font-bold text-black"
           onChange={(event) =>
             setDraft((current) => ({ ...current, country: event.target.value }))
           }
@@ -289,7 +289,7 @@ function PreferencesForm({
       </label>
 
       <button
-        className="self-end rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
+        className="self-end rounded-full border-[3px] border-black bg-black px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-[#2b0b64]"
         type="submit"
       >
         Apply
