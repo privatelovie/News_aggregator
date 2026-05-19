@@ -1,5 +1,6 @@
 import { ArrowRight, Dot, Search, Sparkles } from "lucide-react";
 import Link from "next/link";
+import { HomeBriefingSwipe } from "@/components/home/home-briefing-swipe";
 import { LiveNewsSection } from "@/components/home/live-news-section";
 
 const quickLinks = [
@@ -25,7 +26,7 @@ export default function HomePage() {
             <Sparkles className="size-4" />
             Neural News
           </p>
-          <h1 className="mt-6 max-w-4xl text-[clamp(2.75rem,6vw,6.5rem)] font-black uppercase leading-[0.9] tracking-normal text-[#2b0b64]">
+          <h1 className="mt-6 max-w-4xl text-[clamp(2.5rem,5vw,5.6rem)] font-black uppercase leading-[0.9] tracking-normal text-[#2b0b64]">
             News that fits your world.
           </h1>
           <p className="mt-6 max-w-2xl text-lg font-medium leading-8 text-slate-700">
@@ -47,6 +48,8 @@ export default function HomePage() {
               Search news
             </Link>
           </div>
+
+          <HomeBriefingSwipe />
         </div>
 
         <aside className="overflow-hidden rounded-[2rem] border-[5px] border-black bg-[#c9b8ff] shadow-[10px_10px_0_#050505]">

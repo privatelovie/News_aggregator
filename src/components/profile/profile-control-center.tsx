@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, EyeOff, Mail, RefreshCcw, Star } from "lucide-react";
+import { Download, EyeOff, RefreshCcw, Star } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toArticlePreview } from "@/lib/articles/preview";
 import { FEED_TOPICS } from "@/lib/constants";
@@ -152,10 +152,10 @@ export function ProfileControlCenter() {
           <div>
             <p className="text-sm font-black uppercase">Profile control center</p>
             <h2 className="mt-1 text-3xl font-black uppercase">
-              Briefings, sources, analytics
+              Sources and analyst tools
             </h2>
             <p className="mt-2 text-sm font-bold text-black/75">
-              These tools use your current saved feed preferences and ranked article set.
+              These tools use your saved feed preferences and ranked article set.
             </p>
           </div>
           <button
@@ -181,7 +181,6 @@ export function ProfileControlCenter() {
         </p>
       ) : (
         <>
-          <BriefingPanel articles={articles} preferences={preferences} />
           <SourceControlsPanel
             articles={articles}
             preferences={sourcePreferences}
@@ -490,92 +489,6 @@ function SourceControlsPanel({
             </div>
           );
         })}
-      </div>
-    </section>
-  );
-}
-
-function BriefingPanel({
-  articles,
-  preferences
-}: {
-  articles: ArticlePreview[];
-  preferences: FeedPreferences;
-}) {
-  const selectedTopic =
-    FEED_TOPICS.find((topic) => topic.value === preferences.topic)?.label ??
-    "All topics";
-  const briefingArticles = articles
-    .slice()
-    .sort((a, b) => (b.relevanceScore ?? 0) - (a.relevanceScore ?? 0))
-    .slice(0, 10);
-
-  function exportBriefing() {
-    const lines = [
-      "Neural News briefing",
-      `Topic: ${selectedTopic}`,
-      `Region: ${preferences.country.toUpperCase()}`,
-      `Generated: ${new Date().toLocaleString()}`,
-      "",
-      ...briefingArticles.map(
-        (article, index) =>
-          `${index + 1}. ${article.title}\nSource: ${article.source}\nWhy: ${
-            article.explanation ?? "Selected from your loaded feed."
-          }\n${article.url ?? ""}\n`
-      )
-    ];
-    const blob = new Blob([lines.join("\n")], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = "neural-news-briefing.txt";
-    anchor.click();
-    URL.revokeObjectURL(url);
-  }
-
-  return (
-    <section className="rounded-[1.5rem] border-[5px] border-black bg-[#c9b8ff] p-4 shadow-[8px_8px_0_#050505]">
-      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-        <div>
-          <p className="flex items-center gap-2 text-sm font-black uppercase text-black">
-            <Mail className="size-4" />
-            Daily briefing
-          </p>
-          <h2 className="mt-1 text-3xl font-black uppercase text-black">
-            Top 10 for you
-          </h2>
-          <p className="mt-2 text-sm font-bold text-black/75">
-            Built from your saved topic, region, ranking signals, and current feed.
-          </p>
-        </div>
-        <button
-          className="w-fit rounded-full border-[3px] border-black bg-white px-4 py-2 text-sm font-black text-black transition hover:bg-[#ffd24a]"
-          onClick={exportBriefing}
-          type="button"
-        >
-          Export briefing
-        </button>
-      </div>
-      <div className="mt-4 grid gap-3 md:grid-cols-2">
-        {briefingArticles.length === 0 && (
-          <p className="rounded-2xl border-[3px] border-black bg-white p-4 text-sm font-bold text-black">
-            Refresh profile tools to generate a briefing.
-          </p>
-        )}
-        {briefingArticles.map((article, index) => (
-          <article
-            className="rounded-2xl border-[3px] border-black bg-white p-4 text-black"
-            key={article.id}
-          >
-            <p className="text-xs font-black uppercase">#{index + 1}</p>
-            <h3 className="mt-2 text-base font-black leading-tight">
-              {article.title}
-            </h3>
-            <p className="mt-2 text-xs font-bold text-black/70">
-              {article.explanation ?? article.source}
-            </p>
-          </article>
-        ))}
       </div>
     </section>
   );
