@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, Mail, RefreshCcw, Settings2 } from "lucide-react";
+import { Download, EyeOff, Mail, RefreshCcw, Settings2, Star } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArticleCard } from "@/components/articles/article-card";
 import { ArticleCardSkeleton } from "@/components/articles/article-card-skeleton";
@@ -16,12 +16,22 @@ type FeedArticle = UnifiedArticle & {
     behavior: number;
     recency: number;
     trending: number;
+    sourceControl?: number;
   };
 };
 
 type FeedPreferences = {
   topic: string;
   country: string;
+};
+
+type SourcePreference = {
+  id: string;
+  source: string;
+  action: "NEUTRAL" | "MUTE" | "PRIORITIZE";
+  hideSensational: boolean;
+  preferredRegion?: string | null;
+  preferredLanguage?: string | null;
 };
 
 const PAGE_SIZE = 6;
@@ -49,8 +59,10 @@ export function InfiniteFeed() {
   const [hasMore, setHasMore] = useState(true);
   const [preferences, setPreferences] =
     useState<FeedPreferences>(defaultPreferences);
+  const [sourcePreferences, setSourcePreferences] = useState<SourcePreference[]>([]);
   const [showPreferences, setShowPreferences] = useState(false);
   const [hasLoadedPreferences, setHasLoadedPreferences] = useState(false);
+  const [refreshToken, setRefreshToken] = useState(0);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const hasLoadedInitialPage = useRef(false);
 
@@ -79,6 +91,26 @@ export function InfiniteFeed() {
       setHasLoadedPreferences(true);
     }
   }, []);
+
+  const loadSourcePreferences = useCallback(async () => {
+    const response = await fetch("/api/source-preferences", { cache: "no-store" });
+
+    if (response.status === 401) {
+      setSourcePreferences([]);
+      return;
+    }
+
+    if (!response.ok) {
+      return;
+    }
+
+    const payload = (await response.json()) as { data?: SourcePreference[] };
+    setSourcePreferences(payload.data ?? []);
+  }, []);
+
+  useEffect(() => {
+    void loadSourcePreferences();
+  }, [loadSourcePreferences]);
 
   const loadNextPage = useCallback(async () => {
     if (isLoading || !hasMore) {
@@ -157,7 +189,7 @@ export function InfiniteFeed() {
 
     hasLoadedInitialPage.current = true;
     void loadNextPage();
-  }, [hasLoadedPreferences, loadNextPage]);
+  }, [hasLoadedPreferences, loadNextPage, refreshToken]);
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
@@ -191,12 +223,33 @@ export function InfiniteFeed() {
   function updatePreferences(nextPreferences: FeedPreferences) {
     setPreferences(nextPreferences);
     window.localStorage.setItem(PREFERENCES_KEY, JSON.stringify(nextPreferences));
+    refreshFeed();
+    setShowPreferences(false);
+  }
+
+  function refreshFeed() {
     setArticles([]);
     setPage(0);
     setHasMore(true);
     setError(null);
-    setShowPreferences(false);
     hasLoadedInitialPage.current = false;
+    setRefreshToken((current) => current + 1);
+  }
+
+  async function saveSourcePreference(nextPreference: Omit<SourcePreference, "id">) {
+    const response = await fetch("/api/source-preferences", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(nextPreference)
+    });
+
+    if (!response.ok) {
+      setError("Sign in to save source controls.");
+      return;
+    }
+
+    await loadSourcePreferences();
+    refreshFeed();
   }
 
   return (
@@ -230,6 +283,12 @@ export function InfiniteFeed() {
       </div>
 
       <FeedAnalyticsPanel articles={articles} preferences={preferences} />
+
+      <SourceControlsPanel
+        articles={articles}
+        preferences={sourcePreferences}
+        onSave={saveSourcePreference}
+      />
 
       <BriefingPanel articles={articles} preferences={preferences} />
 
@@ -468,6 +527,170 @@ function FeedAnalyticsPanel({
             ))}
           </div>
         </div>
+      </div>
+    </section>
+  );
+}
+
+function SourceControlsPanel({
+  articles,
+  onSave,
+  preferences
+}: {
+  articles: ArticlePreview[];
+  onSave: (preference: Omit<SourcePreference, "id">) => Promise<void>;
+  preferences: SourcePreference[];
+}) {
+  const topSources = Object.entries(countBy(articles, (article) => article.source))
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6);
+  const preferenceBySource = new Map(
+    preferences.map((preference) => [preference.source.toLowerCase(), preference])
+  );
+
+  async function updateSource(
+    source: string,
+    patch: Partial<Omit<SourcePreference, "id" | "source">>
+  ) {
+    const current = preferenceBySource.get(source.toLowerCase());
+    await onSave({
+      source,
+      action: patch.action ?? current?.action ?? "NEUTRAL",
+      hideSensational:
+        patch.hideSensational ?? current?.hideSensational ?? false,
+      preferredRegion:
+        patch.preferredRegion === undefined
+          ? current?.preferredRegion ?? null
+          : patch.preferredRegion,
+      preferredLanguage:
+        patch.preferredLanguage === undefined
+          ? current?.preferredLanguage ?? null
+          : patch.preferredLanguage
+    });
+  }
+
+  return (
+    <section className="rounded-[1.5rem] border-[5px] border-black bg-white p-4 shadow-[8px_8px_0_#050505] dark:bg-slate-950">
+      <div className="flex flex-col gap-2 border-b-[4px] border-black pb-4">
+        <p className="text-sm font-black uppercase text-[#2b0b64] dark:text-[#ffd24a]">
+          Source controls
+        </p>
+        <h2 className="text-3xl font-black uppercase text-black dark:text-white">
+          Tune who gets through
+        </h2>
+        <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
+          Mute noisy outlets, prioritize trusted ones, and filter sensational
+          wording per source.
+        </p>
+      </div>
+
+      <div className="mt-4 grid gap-3 lg:grid-cols-2">
+        {topSources.length === 0 && (
+          <p className="rounded-2xl border-[3px] border-black bg-[#f4f0ff] p-4 text-sm font-bold text-black">
+            Load your feed to reveal source controls.
+          </p>
+        )}
+        {topSources.map(([source, count]) => {
+          const current = preferenceBySource.get(source.toLowerCase());
+          const action = current?.action ?? "NEUTRAL";
+
+          return (
+            <div
+              className="rounded-2xl border-[3px] border-black bg-[#f4f0ff] p-4 text-black"
+              key={source}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <h3 className="truncate text-base font-black">{source}</h3>
+                  <p className="text-xs font-bold text-black/70">
+                    {count} loaded articles
+                  </p>
+                </div>
+                <span className="rounded-full border-2 border-black bg-white px-3 py-1 text-xs font-black">
+                  {action.toLowerCase()}
+                </span>
+              </div>
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                <button
+                  className={`inline-flex items-center gap-1 rounded-full border-2 border-black px-3 py-2 text-xs font-black ${
+                    action === "PRIORITIZE" ? "bg-[#ffd24a]" : "bg-white"
+                  }`}
+                  onClick={() =>
+                    updateSource(source, {
+                      action: action === "PRIORITIZE" ? "NEUTRAL" : "PRIORITIZE"
+                    })
+                  }
+                  type="button"
+                >
+                  <Star className="size-3.5" />
+                  Prioritize
+                </button>
+                <button
+                  className={`inline-flex items-center gap-1 rounded-full border-2 border-black px-3 py-2 text-xs font-black ${
+                    action === "MUTE" ? "bg-black text-white" : "bg-white"
+                  }`}
+                  onClick={() =>
+                    updateSource(source, {
+                      action: action === "MUTE" ? "NEUTRAL" : "MUTE"
+                    })
+                  }
+                  type="button"
+                >
+                  <EyeOff className="size-3.5" />
+                  Mute
+                </button>
+                <button
+                  className={`rounded-full border-2 border-black px-3 py-2 text-xs font-black ${
+                    current?.hideSensational ? "bg-[#ffd24a]" : "bg-white"
+                  }`}
+                  onClick={() =>
+                    updateSource(source, {
+                      hideSensational: !(current?.hideSensational ?? false)
+                    })
+                  }
+                  type="button"
+                >
+                  Hide sensational
+                </button>
+              </div>
+
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                <select
+                  className="rounded-full border-2 border-black bg-white px-3 py-2 text-xs font-black"
+                  onChange={(event) =>
+                    updateSource(source, {
+                      preferredRegion: event.target.value || null
+                    })
+                  }
+                  value={current?.preferredRegion ?? ""}
+                >
+                  <option value="">Any region</option>
+                  {regions.map((region) => (
+                    <option key={region.value} value={region.value}>
+                      {region.label}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  className="rounded-full border-2 border-black bg-white px-3 py-2 text-xs font-black"
+                  onChange={(event) =>
+                    updateSource(source, {
+                      preferredLanguage: event.target.value || null
+                    })
+                  }
+                  value={current?.preferredLanguage ?? ""}
+                >
+                  <option value="">Any language</option>
+                  <option value="en">English</option>
+                  <option value="hi">Hindi</option>
+                  <option value="es">Spanish</option>
+                  <option value="fr">French</option>
+                </select>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </section>
   );

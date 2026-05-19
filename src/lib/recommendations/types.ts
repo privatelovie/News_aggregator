@@ -21,6 +21,7 @@ export type RankedArticle = UnifiedArticle & {
     behavior: number;
     recency: number;
     trending: number;
+    sourceControl: number;
     behaviorSignals: {
       clicks: number;
       readingTime: number;

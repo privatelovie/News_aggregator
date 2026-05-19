@@ -175,6 +175,8 @@ export function ArticleBrowser({
         </div>
       )}
 
+      {category && <TrendPanel articles={articles} category={category} />}
+
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {isLoading
           ? Array.from({ length: 6 }).map((_, index) => (
@@ -191,5 +193,64 @@ export function ArticleBrowser({
         </p>
       )}
     </main>
+  );
+}
+
+function TrendPanel({
+  articles,
+  category
+}: {
+  articles: ArticlePreview[];
+  category: NewsCategory;
+}) {
+  const now = Date.now();
+  const last24h = articles.filter((article) => {
+    const publishedAt = article.article?.publishedAt;
+
+    if (!publishedAt) {
+      return false;
+    }
+
+    const ageHours = (now - new Date(publishedAt).getTime()) / 36e5;
+    return Number.isFinite(ageHours) && ageHours <= 24;
+  });
+  const sources = new Set(articles.map((article) => article.source));
+  const agreementScore =
+    articles.length === 0
+      ? 0
+      : Math.min(100, Math.round((sources.size / Math.max(articles.length, 1)) * 140));
+  const fastestSource = Object.entries(
+    articles.reduce<Record<string, number>>((counts, article) => {
+      counts[article.source] = (counts[article.source] ?? 0) + 1;
+      return counts;
+    }, {})
+  ).sort((a, b) => b[1] - a[1])[0];
+
+  return (
+    <section className="grid gap-4 rounded-[1.5rem] border-[5px] border-black bg-[#ffd24a] p-4 text-black shadow-[8px_8px_0_#050505] md:grid-cols-3">
+      <div>
+        <p className="text-xs font-black uppercase">Trending in {category}</p>
+        <p className="mt-2 text-4xl font-black">{last24h.length}</p>
+        <p className="text-sm font-bold">fresh stories in the last 24h</p>
+      </div>
+      <div>
+        <p className="text-xs font-black uppercase">Cross-source agreement</p>
+        <p className="mt-2 text-4xl font-black">{agreementScore}%</p>
+        <p className="text-sm font-bold">
+          Based on breadth across {sources.size} sources.
+        </p>
+      </div>
+      <div>
+        <p className="text-xs font-black uppercase">Velocity signal</p>
+        <p className="mt-2 text-2xl font-black">
+          {fastestSource ? fastestSource[0] : "Waiting for data"}
+        </p>
+        <p className="text-sm font-bold">
+          {fastestSource
+            ? `${fastestSource[1]} stories in this loaded category set.`
+            : "Load articles to calculate category momentum."}
+        </p>
+      </div>
+    </section>
   );
 }

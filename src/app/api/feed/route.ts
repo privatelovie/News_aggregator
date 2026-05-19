@@ -37,7 +37,7 @@ export async function GET(request: Request) {
       personalized: true,
       scoring: {
         formula:
-          "userEmbedding + behaviorScore + recencyScore + trendingScore",
+          "userEmbedding + behaviorScore + recencyScore + trendingScore + sourceControlBoost",
         weights: FEED_RANKING_WEIGHTS
       }
     }

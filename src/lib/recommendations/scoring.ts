@@ -13,6 +13,13 @@ type ArticleRankingSignals = {
   trendingScore: number;
 };
 
+type SourceControlSignal = {
+  action: "NEUTRAL" | "MUTE" | "PRIORITIZE";
+  hideSensational: boolean;
+  preferredRegion?: string | null;
+  preferredLanguage?: string | null;
+};
+
 export function calculateRecommendationScore({
   clickCount,
   totalReadingTimeSeconds,
@@ -54,7 +61,7 @@ export async function getRankedFeed(
   const urls = result.articles.map((article) => article.url).filter(Boolean);
   const categorySlugs = result.articles.map((article) => article.category);
 
-  const [interactions, bookmarks, categoryViews, rankingSignals] = await Promise.all([
+  const [interactions, bookmarks, categoryViews, rankingSignals, sourcePreferences] = await Promise.all([
     prisma.userInteraction.findMany({
       where: {
         userId,
@@ -88,7 +95,13 @@ export async function getRankedFeed(
         category: { select: { slug: true } }
       }
     }),
-    getArticleRankingSignals(userId, urls)
+    getArticleRankingSignals(userId, urls),
+    prisma.sourcePreference.findMany({
+      where: {
+        userId,
+        source: { in: Array.from(new Set(result.articles.map((article) => article.source))) }
+      }
+    })
   ]);
 
   const interactionByUrl = new Map(
@@ -101,9 +114,41 @@ export async function getRankedFeed(
   const rankingSignalsByUrl = new Map(
     rankingSignals.map((signals) => [signals.url, signals])
   );
+  const sourceControlsByName = new Map(
+    sourcePreferences.map((preference) => [
+      preference.source.toLowerCase(),
+      {
+        action: preference.action,
+        hideSensational: preference.hideSensational,
+        preferredRegion: preference.preferredRegion,
+        preferredLanguage: preference.preferredLanguage
+      }
+    ])
+  );
 
   return {
     articles: result.articles
+      .filter((article) => {
+        const sourceControl = sourceControlsByName.get(article.source.toLowerCase());
+
+        if (sourceControl?.action === "MUTE") {
+          return false;
+        }
+
+        if (sourceControl?.hideSensational && isSensationalHeadline(article.title)) {
+          return false;
+        }
+
+        if (
+          sourceControl?.preferredRegion &&
+          params.country &&
+          sourceControl.preferredRegion !== params.country
+        ) {
+          return false;
+        }
+
+        return true;
+      })
       .map((article) =>
         rankArticle({
           article,
@@ -114,7 +159,14 @@ export async function getRankedFeed(
           categoryViewCount: categoryViewsBySlug.get(article.category) ?? 0,
           embeddingSimilarity:
             rankingSignalsByUrl.get(article.url)?.embeddingSimilarity ?? 0,
-          trendingScore: rankingSignalsByUrl.get(article.url)?.trendingScore ?? 0
+          trendingScore: rankingSignalsByUrl.get(article.url)?.trendingScore ?? 0,
+          sourceControl:
+            sourceControlsByName.get(article.source.toLowerCase()) ?? {
+              action: "NEUTRAL",
+              hideSensational: false,
+              preferredRegion: null,
+              preferredLanguage: null
+            }
         })
       )
       .sort(
@@ -134,7 +186,8 @@ function rankArticle({
   isBookmarked,
   categoryViewCount,
   embeddingSimilarity,
-  trendingScore
+  trendingScore,
+  sourceControl
 }: {
   article: UnifiedArticle;
   clickCount: number;
@@ -143,6 +196,7 @@ function rankArticle({
   categoryViewCount: number;
   embeddingSimilarity: number;
   trendingScore: number;
+  sourceControl: SourceControlSignal;
 }): RankedArticle {
   const { score, breakdown } = calculateRecommendationScore({
     clickCount,
@@ -154,11 +208,14 @@ function rankArticle({
   const recency = calculateRecencyScore(article.publishedAt);
   const userEmbedding = clamp01(embeddingSimilarity);
   const trending = clamp01(trendingScore);
-  const recommendationScore =
+  const sourceControlBoost = sourceControl.action === "PRIORITIZE" ? 0.14 : 0;
+  const recommendationScore = clamp01(
     userEmbedding * FEED_RANKING_WEIGHTS.userEmbedding +
     behavior * FEED_RANKING_WEIGHTS.behavior +
     recency * FEED_RANKING_WEIGHTS.recency +
-    trending * FEED_RANKING_WEIGHTS.trending;
+    trending * FEED_RANKING_WEIGHTS.trending +
+    sourceControlBoost
+  );
 
   return {
     ...article,
@@ -168,6 +225,7 @@ function rankArticle({
       behavior,
       recency,
       trending,
+      sourceControl: sourceControlBoost,
       behaviorSignals: breakdown
     }
   };
@@ -254,4 +312,10 @@ function clamp01(value: number) {
   }
 
   return Math.min(Math.max(value, 0), 1);
+}
+
+function isSensationalHeadline(title: string) {
+  return /\b(shocking|bombshell|you won't believe|destroyed|exposed|insane|secret|panic|disaster|meltdown)\b/i.test(
+    title
+  );
 }

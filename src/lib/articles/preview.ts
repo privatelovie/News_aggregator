@@ -10,6 +10,7 @@ export function toArticlePreview(
       behavior: number;
       recency: number;
       trending: number;
+      sourceControl?: number;
     };
   }
 ): ArticlePreview {
@@ -46,6 +47,7 @@ function buildExplanation(
       behavior: number;
       recency: number;
       trending: number;
+      sourceControl?: number;
     };
   }
 ) {
@@ -60,7 +62,8 @@ function buildExplanation(
       "topic affinity": article.scoreBreakdown.userEmbedding,
       "reading behavior": article.scoreBreakdown.behavior,
       freshness: article.scoreBreakdown.recency,
-      "global momentum": article.scoreBreakdown.trending
+      "global momentum": article.scoreBreakdown.trending,
+      "source priority": article.scoreBreakdown.sourceControl ?? 0
     }).sort((a, b) => b[1] - a[1])[0];
 
     return `Ranked for you because ${strongestSignal[0]} is the strongest signal, with recency and trend checks included.`;

@@ -5,6 +5,10 @@ import type {
   TrackCategoryInput,
   TrackReadingInput
 } from "@/lib/recommendations/types";
+import type { z } from "zod";
+import type { bookmarkMetadataSchema } from "@/lib/recommendations/validation";
+
+type BookmarkMetadataInput = Partial<z.infer<typeof bookmarkMetadataSchema>>;
 
 export async function trackArticleClick(userId: string, input: TrackArticleInput) {
   const article = await ensureArticle(input.article);
@@ -82,8 +86,13 @@ export async function trackCategoryView(
   });
 }
 
-export async function bookmarkArticle(userId: string, input: TrackArticleInput) {
+export async function bookmarkArticle(
+  userId: string,
+  input: TrackArticleInput,
+  metadata: BookmarkMetadataInput = {}
+) {
   const article = await ensureArticle(input.article);
+  const offlineSnapshot = metadata.offlineSnapshot?.trim() || null;
 
   return prisma.bookmark.upsert({
     where: {
@@ -92,10 +101,21 @@ export async function bookmarkArticle(userId: string, input: TrackArticleInput) 
         articleId: article.id
       }
     },
-    update: {},
+    update: {
+      folder: metadata.folder,
+      tags: metadata.tags,
+      note: metadata.note,
+      offlineSnapshot,
+      offlineSavedAt: offlineSnapshot ? new Date() : null
+    },
     create: {
       userId,
-      articleId: article.id
+      articleId: article.id,
+      folder: metadata.folder ?? "Read later",
+      tags: metadata.tags ?? [],
+      note: metadata.note,
+      offlineSnapshot,
+      offlineSavedAt: offlineSnapshot ? new Date() : null
     }
   });
 }

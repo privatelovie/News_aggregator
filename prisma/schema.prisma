@@ -9,21 +9,22 @@ datasource db {
 }
 
 model User {
-  id               String                @id @default(cuid())
-  name             String?
-  email            String?               @unique
-  emailVerified    DateTime?
-  image            String?
-  passwordHash     String?
-  accounts         Account[]
-  sessions         Session[]
-  bookmarks        Bookmark[]
-  interests        Category[]            @relation("UserInterests")
-  interactions     UserInteraction[]
-  categoryViews    UserCategoryView[]
-  profileEmbedding UserProfileEmbedding?
-  createdAt        DateTime              @default(now())
-  updatedAt        DateTime              @updatedAt
+  id                String                @id @default(cuid())
+  name              String?
+  email             String?               @unique
+  emailVerified     DateTime?
+  image             String?
+  passwordHash      String?
+  accounts          Account[]
+  sessions          Session[]
+  bookmarks         Bookmark[]
+  interests         Category[]            @relation("UserInterests")
+  interactions      UserInteraction[]
+  categoryViews     UserCategoryView[]
+  sourcePreferences SourcePreference[]
+  profileEmbedding  UserProfileEmbedding?
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
 }
 
 model Account {
@@ -95,15 +96,44 @@ model Category {
 }
 
 model Bookmark {
-  id        String   @id @default(cuid())
-  userId    String
-  articleId String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
+  id              String    @id @default(cuid())
+  userId          String
+  articleId       String
+  folder          String    @default("Read later")
+  tags            String[]  @default([])
+  note            String?
+  offlineSnapshot String?
+  offlineSavedAt  DateTime?
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  article         Article   @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   @@unique([userId, articleId])
   @@index([articleId])
+  @@index([userId, folder])
+}
+
+model SourcePreference {
+  id                String                 @id @default(cuid())
+  userId            String
+  source            String
+  action            SourcePreferenceAction @default(NEUTRAL)
+  hideSensational   Boolean                @default(false)
+  preferredRegion   String?
+  preferredLanguage String?
+  user              User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+
+  @@unique([userId, source])
+  @@index([userId, action])
+}
+
+enum SourcePreferenceAction {
+  NEUTRAL
+  MUTE
+  PRIORITIZE
 }
 
 model UserInteraction {
