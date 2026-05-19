@@ -49,6 +49,24 @@ export const sourcePreferenceSchema = z.object({
   preferredLanguage: z.string().trim().max(12).nullable().optional()
 });
 
+export const feedPreferenceSchema = z.object({
+  topics: z.array(z.string().trim().min(1).max(80)).min(1).max(12),
+  sources: z.array(z.string().trim().min(1).max(160)).max(12).default([]),
+  location: z.string().trim().min(2).max(12).default("us"),
+  readingDepth: z.enum(["QUICK", "BALANCED", "DEEP"]).default("BALANCED"),
+  hideNsfw: z.boolean().default(true),
+  politicalSensitivity: z
+    .enum(["low", "balanced", "high"])
+    .default("balanced"),
+  onboardingComplete: z.boolean().default(true)
+});
+
+export const articleFeedbackSchema = articleEventSchema.extend({
+  reason: z
+    .enum(["SHOW_FEWER", "SENSITIVE", "LOW_QUALITY"])
+    .default("SHOW_FEWER")
+});
+
 export const readingEventSchema = articleEventSchema.extend({
   durationSeconds: z.number().int().min(0).max(86400)
 });

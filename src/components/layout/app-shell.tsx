@@ -2,6 +2,7 @@
 
 import {
   Bookmark,
+  BarChart3,
   Home,
   LogOut,
   Moon,
@@ -21,7 +22,8 @@ const navItems = [
   { href: "/", label: "Home", icon: Home },
   { href: "/feed", label: "Feed", icon: Sparkles },
   { href: "/search", label: "Search", icon: Search },
-  { href: "/bookmarks", label: "Saved", icon: Bookmark }
+  { href: "/bookmarks", label: "Saved", icon: Bookmark },
+  { href: "/observability", label: "Metrics", icon: BarChart3 }
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {

@@ -22,6 +22,9 @@ model User {
   interactions      UserInteraction[]
   categoryViews     UserCategoryView[]
   sourcePreferences SourcePreference[]
+  feedPreference    UserFeedPreference?
+  articleFeedback   ArticleFeedback[]
+  analyticsEvents   AnalyticsEvent[]
   profileEmbedding  UserProfileEmbedding?
   createdAt         DateTime              @default(now())
   updatedAt         DateTime              @updatedAt
@@ -75,12 +78,69 @@ model Article {
   embedding    Unsupported("vector(1536)")?
   bookmarks    Bookmark[]
   interactions UserInteraction[]
+  feedback     ArticleFeedback[]
   createdAt    DateTime                     @default(now())
   updatedAt    DateTime                     @updatedAt
 
   @@index([categoryId, publishedAt])
   @@index([publishedAt])
   @@index([source])
+}
+
+model UserFeedPreference {
+  id                   String       @id @default(cuid())
+  userId               String       @unique
+  topics               String[]     @default([])
+  sources              String[]     @default([])
+  location             String       @default("us")
+  readingDepth         ReadingDepth @default(BALANCED)
+  hideNsfw             Boolean      @default(true)
+  politicalSensitivity String       @default("balanced")
+  onboardingComplete   Boolean      @default(false)
+  user                 User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+}
+
+model ArticleFeedback {
+  id        String                @id @default(cuid())
+  userId    String
+  articleId String
+  reason    ArticleFeedbackReason @default(SHOW_FEWER)
+  source    String
+  category  String
+  user      User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  article   Article               @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  createdAt DateTime              @default(now())
+
+  @@unique([userId, articleId, reason])
+  @@index([userId, source])
+  @@index([userId, category])
+}
+
+model AnalyticsEvent {
+  id        String   @id @default(cuid())
+  userId    String?
+  type      String
+  path      String?
+  payload   Json
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([type, createdAt])
+  @@index([userId, createdAt])
+}
+
+enum ReadingDepth {
+  QUICK
+  BALANCED
+  DEEP
+}
+
+enum ArticleFeedbackReason {
+  SHOW_FEWER
+  SENSITIVE
+  LOW_QUALITY
 }
 
 model Category {

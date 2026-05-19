@@ -43,13 +43,21 @@ export function normalizeTitle(title?: string | null) {
 export function dedupeArticles(articles: UnifiedArticle[]) {
   const byUrl = new Map<string, UnifiedArticle>();
   const byTitleSource = new Map<string, UnifiedArticle>();
+  const byCluster = new Map<string, UnifiedArticle>();
 
   for (const article of articles) {
     const normalizedUrl = normalizeUrl(article.url);
+    if (!normalizedUrl || isBrokenNewsUrl(normalizedUrl)) {
+      continue;
+    }
+
+    article.url = normalizedUrl;
     const titleSourceKey = `${normalizeTitle(article.title).toLowerCase()}::${article.source.toLowerCase()}`;
-    const existing = normalizedUrl
-      ? byUrl.get(normalizedUrl)
-      : byTitleSource.get(titleSourceKey);
+    const clusterKey = createTitleClusterKey(article.title);
+    const existing =
+      byUrl.get(normalizedUrl) ??
+      byTitleSource.get(titleSourceKey) ??
+      byCluster.get(clusterKey);
 
     if (existing) {
       existing.providers = mergeProviders(existing, article);
@@ -64,6 +72,7 @@ export function dedupeArticles(articles: UnifiedArticle[]) {
     }
 
     byTitleSource.set(titleSourceKey, article);
+    byCluster.set(clusterKey, article);
   }
 
   return Array.from(byTitleSource.values()).sort(
@@ -71,6 +80,40 @@ export function dedupeArticles(articles: UnifiedArticle[]) {
       new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
   );
 }
+
+function createTitleClusterKey(title: string) {
+  return normalizeTitle(title)
+    .toLowerCase()
+    .replace(/[^\w\s]/g, "")
+    .split(/\s+/)
+    .filter((word) => word.length > 3 && !TITLE_STOP_WORDS.has(word))
+    .slice(0, 8)
+    .sort()
+    .join("-");
+}
+
+function isBrokenNewsUrl(url: string) {
+  try {
+    const parsed = new URL(url);
+    return !["http:", "https:"].includes(parsed.protocol) || parsed.hostname.length < 4;
+  } catch {
+    return true;
+  }
+}
+
+const TITLE_STOP_WORDS = new Set([
+  "about",
+  "after",
+  "from",
+  "have",
+  "into",
+  "over",
+  "that",
+  "this",
+  "with",
+  "your",
+  "will"
+]);
 
 function mergeProviders(existing: UnifiedArticle, incoming: UnifiedArticle) {
   const seen = new Set(existing.providers.map((provider) => provider.name));

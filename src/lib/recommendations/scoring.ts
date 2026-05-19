@@ -61,7 +61,15 @@ export async function getRankedFeed(
   const urls = result.articles.map((article) => article.url).filter(Boolean);
   const categorySlugs = result.articles.map((article) => article.category);
 
-  const [interactions, bookmarks, categoryViews, rankingSignals, sourcePreferences] = await Promise.all([
+  const [
+    interactions,
+    bookmarks,
+    categoryViews,
+    rankingSignals,
+    sourcePreferences,
+    feedPreference,
+    feedback
+  ] = await Promise.all([
     prisma.userInteraction.findMany({
       where: {
         userId,
@@ -101,7 +109,9 @@ export async function getRankedFeed(
         userId,
         source: { in: Array.from(new Set(result.articles.map((article) => article.source))) }
       }
-    })
+    }),
+    prisma.userFeedPreference.findUnique({ where: { userId } }),
+    prisma.articleFeedback.findMany({ where: { userId } })
   ]);
 
   const interactionByUrl = new Map(
@@ -125,6 +135,12 @@ export async function getRankedFeed(
       }
     ])
   );
+  const fewerSources = new Set(feedback.map((item) => item.source.toLowerCase()));
+  const fewerCategories = new Set(
+    feedback.map((item) => item.category.toLowerCase())
+  );
+  const preferredTopics = new Set(feedPreference?.topics.map((topic) => topic.toLowerCase()) ?? []);
+  const preferredSources = new Set(feedPreference?.sources.map((source) => source.toLowerCase()) ?? []);
 
   return {
     articles: result.articles
@@ -143,6 +159,17 @@ export async function getRankedFeed(
           sourceControl?.preferredRegion &&
           params.country &&
           sourceControl.preferredRegion !== params.country
+        ) {
+          return false;
+        }
+
+        if (feedPreference?.hideNsfw && isNsfwHeadline(article.title)) {
+          return false;
+        }
+
+        if (
+          feedPreference?.politicalSensitivity === "low" &&
+          article.category === "politics"
         ) {
           return false;
         }
@@ -166,7 +193,15 @@ export async function getRankedFeed(
               hideSensational: false,
               preferredRegion: null,
               preferredLanguage: null
-            }
+            },
+          coldStartBoost: calculateColdStartBoost({
+            article,
+            preferredTopics,
+            preferredSources,
+            readingDepth: feedPreference?.readingDepth ?? "BALANCED",
+            fewerSources,
+            fewerCategories
+          })
         })
       )
       .sort(
@@ -187,7 +222,8 @@ function rankArticle({
   categoryViewCount,
   embeddingSimilarity,
   trendingScore,
-  sourceControl
+  sourceControl,
+  coldStartBoost
 }: {
   article: UnifiedArticle;
   clickCount: number;
@@ -197,6 +233,7 @@ function rankArticle({
   embeddingSimilarity: number;
   trendingScore: number;
   sourceControl: SourceControlSignal;
+  coldStartBoost: number;
 }): RankedArticle {
   const { score, breakdown } = calculateRecommendationScore({
     clickCount,
@@ -214,7 +251,8 @@ function rankArticle({
     behavior * FEED_RANKING_WEIGHTS.behavior +
     recency * FEED_RANKING_WEIGHTS.recency +
     trending * FEED_RANKING_WEIGHTS.trending +
-    sourceControlBoost
+    sourceControlBoost +
+    coldStartBoost
   );
 
   return {
@@ -225,7 +263,7 @@ function rankArticle({
       behavior,
       recency,
       trending,
-      sourceControl: sourceControlBoost,
+      sourceControl: sourceControlBoost + coldStartBoost,
       behaviorSignals: breakdown
     }
   };
@@ -318,4 +356,57 @@ function isSensationalHeadline(title: string) {
   return /\b(shocking|bombshell|you won't believe|destroyed|exposed|insane|secret|panic|disaster|meltdown)\b/i.test(
     title
   );
+}
+
+function isNsfwHeadline(title: string) {
+  return /\b(nsfw|explicit|porn|nude|graphic|gore)\b/i.test(title);
+}
+
+function calculateColdStartBoost({
+  article,
+  fewerCategories,
+  fewerSources,
+  preferredSources,
+  preferredTopics,
+  readingDepth
+}: {
+  article: UnifiedArticle;
+  fewerCategories: Set<string>;
+  fewerSources: Set<string>;
+  preferredSources: Set<string>;
+  preferredTopics: Set<string>;
+  readingDepth: "QUICK" | "BALANCED" | "DEEP";
+}) {
+  let boost = 0;
+
+  if (
+    preferredTopics.has(article.category) ||
+    Array.from(preferredTopics).some((topic) =>
+      `${article.title} ${article.summary ?? ""}`.toLowerCase().includes(topic)
+    )
+  ) {
+    boost += 0.12;
+  }
+
+  if (preferredSources.has(article.source.toLowerCase())) {
+    boost += 0.08;
+  }
+
+  if (readingDepth === "QUICK" && (article.summary?.length ?? 0) < 220) {
+    boost += 0.04;
+  }
+
+  if (readingDepth === "DEEP" && (article.content?.length ?? 0) > 800) {
+    boost += 0.04;
+  }
+
+  if (fewerSources.has(article.source.toLowerCase())) {
+    boost -= 0.2;
+  }
+
+  if (fewerCategories.has(article.category.toLowerCase())) {
+    boost -= 0.08;
+  }
+
+  return boost;
 }

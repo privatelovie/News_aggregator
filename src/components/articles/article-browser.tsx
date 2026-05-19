@@ -2,6 +2,7 @@
 
 import { Search } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { sendAnalyticsEvent } from "@/components/analytics/analytics-provider";
 import { ArticleCard } from "@/components/articles/article-card";
 import { ArticleCardSkeleton } from "@/components/articles/article-card-skeleton";
 import { toArticlePreview } from "@/lib/articles/preview";
@@ -90,6 +91,13 @@ export function ArticleBrowser({
 
         if (isActive) {
           setArticles((payload.data ?? []).map(toArticlePreview));
+          if (submittedQuery.trim()) {
+            sendAnalyticsEvent("search_success", {
+              mode: searchMode,
+              query: submittedQuery.trim(),
+              resultCount: payload.data?.length ?? 0
+            });
+          }
         }
       } catch (caughtError) {
         if (isActive) {
@@ -134,6 +142,10 @@ export function ArticleBrowser({
           onSubmit={(event) => {
             event.preventDefault();
             setSubmittedQuery(query);
+            sendAnalyticsEvent("search_submit", {
+              mode: searchMode,
+              query: query.trim()
+            });
           }}
         >
           <div className="flex rounded-full border-[3px] border-black bg-white p-1">

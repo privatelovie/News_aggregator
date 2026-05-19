@@ -5,6 +5,7 @@ import {
   Check,
   Clock,
   ExternalLink,
+  ThumbsDown,
   Loader2,
   Sparkles,
   Wand2,
@@ -13,6 +14,7 @@ import {
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useState } from "react";
+import { sendAnalyticsEvent } from "@/components/analytics/analytics-provider";
 import type { CachedArticleSummary } from "@/lib/ai/types";
 import type { ArticlePreview } from "@/types/article";
 
@@ -51,6 +53,11 @@ export function ArticleCard({ article }: { article: ArticlePreview }) {
       }
 
       setIsSaved(true);
+      sendAnalyticsEvent("save_article", {
+        articleId: article.id,
+        source: article.source,
+        category: article.category
+      });
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to save article.");
     } finally {
@@ -95,6 +102,11 @@ export function ArticleCard({ article }: { article: ArticlePreview }) {
       }
 
       setSummary(payload.data);
+      sendAnalyticsEvent("summary_open", {
+        articleId: article.id,
+        source: article.source,
+        category: article.category
+      });
     } catch (error) {
       setMessage(
         error instanceof Error ? error.message : "Unable to summarize article."
@@ -102,6 +114,36 @@ export function ArticleCard({ article }: { article: ArticlePreview }) {
     } finally {
       setIsSummarizing(false);
     }
+  }
+
+  async function showFewerLikeThis() {
+    if (!article.article) return;
+
+    if (status !== "authenticated") {
+      setMessage("Sign in to tune your recommendations.");
+      return;
+    }
+
+    const response = await fetch("/api/feedback", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        article: article.article,
+        reason: "SHOW_FEWER"
+      })
+    });
+
+    if (!response.ok) {
+      setMessage("Unable to save feedback.");
+      return;
+    }
+
+    sendAnalyticsEvent("show_fewer", {
+      articleId: article.id,
+      source: article.source,
+      category: article.category
+    });
+    setMessage("Got it. You will see fewer like this.");
   }
 
   const title = (
@@ -116,6 +158,13 @@ export function ArticleCard({ article }: { article: ArticlePreview }) {
         <a
           className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
           href={article.url}
+          onClick={() =>
+            sendAnalyticsEvent("article_open", {
+              articleId: article.id,
+              source: article.source,
+              category: article.category
+            })
+          }
           rel="noreferrer"
           target="_blank"
         >
@@ -138,6 +187,13 @@ export function ArticleCard({ article }: { article: ArticlePreview }) {
           <a
             className="group/link focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
             href={article.url}
+            onClick={() =>
+              sendAnalyticsEvent("article_open", {
+                articleId: article.id,
+                source: article.source,
+                category: article.category
+              })
+            }
             rel="noreferrer"
             target="_blank"
           >
@@ -204,6 +260,13 @@ export function ArticleCard({ article }: { article: ArticlePreview }) {
                 aria-label="Open article"
                 className="grid size-10 place-items-center rounded-full border-[3px] border-black bg-black text-white transition hover:bg-[#2b0b64] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ffd24a]"
                 href={article.url}
+                onClick={() =>
+                  sendAnalyticsEvent("article_open", {
+                    articleId: article.id,
+                    source: article.source,
+                    category: article.category
+                  })
+                }
                 rel="noreferrer"
                 target="_blank"
                 title="Open"
@@ -211,6 +274,16 @@ export function ArticleCard({ article }: { article: ArticlePreview }) {
                 <ExternalLink className="size-4" />
               </a>
             )}
+            <button
+              aria-label="Show fewer like this"
+              className="grid size-10 place-items-center rounded-full border-[3px] border-black bg-white text-black transition hover:bg-[#f4f0ff] disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={!canUseArticleActions}
+              onClick={showFewerLikeThis}
+              title="Show fewer like this"
+              type="button"
+            >
+              <ThumbsDown className="size-4" />
+            </button>
           </div>
         </div>
       </div>

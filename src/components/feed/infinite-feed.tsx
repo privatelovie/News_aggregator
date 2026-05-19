@@ -1,6 +1,14 @@
 "use client";
 
-import { Download, EyeOff, Mail, RefreshCcw, Settings2, Star } from "lucide-react";
+import {
+  Download,
+  EyeOff,
+  Mail,
+  RefreshCcw,
+  Settings2,
+  ShieldCheck,
+  Star
+} from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArticleCard } from "@/components/articles/article-card";
 import { ArticleCardSkeleton } from "@/components/articles/article-card-skeleton";
@@ -34,6 +42,16 @@ type SourcePreference = {
   preferredLanguage?: string | null;
 };
 
+type PersistedFeedPreference = {
+  topics: string[];
+  sources: string[];
+  location: string;
+  readingDepth: "QUICK" | "BALANCED" | "DEEP";
+  hideNsfw: boolean;
+  politicalSensitivity: "low" | "balanced" | "high";
+  onboardingComplete: boolean;
+};
+
 const PAGE_SIZE = 6;
 const MAX_PAGES = 6;
 const PREFERENCES_KEY = "news-app-feed-preferences";
@@ -60,7 +78,10 @@ export function InfiniteFeed() {
   const [preferences, setPreferences] =
     useState<FeedPreferences>(defaultPreferences);
   const [sourcePreferences, setSourcePreferences] = useState<SourcePreference[]>([]);
+  const [persistedPreference, setPersistedPreference] =
+    useState<PersistedFeedPreference | null>(null);
   const [showPreferences, setShowPreferences] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [hasLoadedPreferences, setHasLoadedPreferences] = useState(false);
   const [refreshToken, setRefreshToken] = useState(0);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
@@ -111,6 +132,37 @@ export function InfiniteFeed() {
   useEffect(() => {
     void loadSourcePreferences();
   }, [loadSourcePreferences]);
+
+  const loadPersistedPreference = useCallback(async () => {
+    const response = await fetch("/api/preferences", { cache: "no-store" });
+
+    if (response.status === 401) {
+      return;
+    }
+
+    if (!response.ok) {
+      return;
+    }
+
+    const payload = (await response.json()) as {
+      data?: PersistedFeedPreference | null;
+    };
+
+    if (payload.data) {
+      setPersistedPreference(payload.data);
+      setPreferences((current) => ({
+        ...current,
+        topic: payload.data?.topics[0] ?? current.topic,
+        country: payload.data?.location ?? current.country
+      }));
+    } else {
+      setShowOnboarding(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadPersistedPreference();
+  }, [loadPersistedPreference]);
 
   const loadNextPage = useCallback(async () => {
     if (isLoading || !hasMore) {
@@ -252,6 +304,27 @@ export function InfiniteFeed() {
     refreshFeed();
   }
 
+  async function saveOnboarding(nextPreference: PersistedFeedPreference) {
+    const response = await fetch("/api/preferences", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(nextPreference)
+    });
+
+    if (!response.ok) {
+      setError("Sign in to save onboarding preferences.");
+      return;
+    }
+
+    setPersistedPreference(nextPreference);
+    setPreferences({
+      topic: nextPreference.topics[0] ?? "all",
+      country: nextPreference.location
+    });
+    setShowOnboarding(false);
+    refreshFeed();
+  }
+
   return (
     <section className="space-y-5">
       <div className="rounded-[1.5rem] border-[5px] border-black bg-[#c9b8ff] p-4 shadow-[8px_8px_0_#050505]">
@@ -272,6 +345,13 @@ export function InfiniteFeed() {
           >
             {showPreferences ? "Hide preferences" : "Edit preferences"}
           </button>
+          <button
+            className="w-fit rounded-full border-[3px] border-black bg-[#ffd24a] px-4 py-2 text-sm font-black text-black transition hover:bg-white"
+            onClick={() => setShowOnboarding((current) => !current)}
+            type="button"
+          >
+            Onboarding
+          </button>
         </div>
 
         {showPreferences && (
@@ -281,6 +361,14 @@ export function InfiniteFeed() {
           />
         )}
       </div>
+
+      {showOnboarding && (
+        <OnboardingPanel
+          articles={articles}
+          initialPreference={persistedPreference}
+          onSave={saveOnboarding}
+        />
+      )}
 
       <FeedAnalyticsPanel articles={articles} preferences={preferences} />
 
@@ -385,6 +473,169 @@ function PreferencesForm({
         Apply
       </button>
     </form>
+  );
+}
+
+function OnboardingPanel({
+  articles,
+  initialPreference,
+  onSave
+}: {
+  articles: ArticlePreview[];
+  initialPreference: PersistedFeedPreference | null;
+  onSave: (preference: PersistedFeedPreference) => Promise<void>;
+}) {
+  const suggestedSources = Array.from(
+    new Set(articles.map((article) => article.source))
+  ).slice(0, 8);
+  const [topics, setTopics] = useState<string[]>(
+    initialPreference?.topics ?? ["technology", "business"]
+  );
+  const [sources, setSources] = useState<string[]>(
+    initialPreference?.sources ?? []
+  );
+  const [location, setLocation] = useState(initialPreference?.location ?? "us");
+  const [readingDepth, setReadingDepth] = useState<
+    PersistedFeedPreference["readingDepth"]
+  >(initialPreference?.readingDepth ?? "BALANCED");
+  const [hideNsfw, setHideNsfw] = useState(initialPreference?.hideNsfw ?? true);
+  const [politicalSensitivity, setPoliticalSensitivity] = useState<
+    PersistedFeedPreference["politicalSensitivity"]
+  >(initialPreference?.politicalSensitivity ?? "balanced");
+
+  function toggleValue(values: string[], value: string) {
+    return values.includes(value)
+      ? values.filter((item) => item !== value)
+      : [...values, value];
+  }
+
+  return (
+    <section className="rounded-[1.5rem] border-[5px] border-black bg-white p-4 text-black shadow-[8px_8px_0_#050505] dark:bg-slate-950 dark:text-white">
+      <div className="flex items-center gap-2 text-sm font-black uppercase text-[#2b0b64] dark:text-[#ffd24a]">
+        <ShieldCheck className="size-4" />
+        First-run preferences
+      </div>
+      <h2 className="mt-2 text-3xl font-black uppercase">
+        Kick-start your For You feed
+      </h2>
+
+      <div className="mt-4 grid gap-4 lg:grid-cols-2">
+        <div>
+          <p className="text-xs font-black uppercase">Topics</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {FEED_TOPICS.filter((topic) => topic.type !== "all").map((topic) => (
+              <button
+                className={`rounded-full border-2 border-black px-3 py-2 text-xs font-black ${
+                  topics.includes(topic.value) ? "bg-[#ffd24a] text-black" : "bg-white text-black"
+                }`}
+                key={topic.value}
+                onClick={() => setTopics((current) => toggleValue(current, topic.value))}
+                type="button"
+              >
+                {topic.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <p className="text-xs font-black uppercase">Trusted sources</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {suggestedSources.length === 0 && (
+              <span className="rounded-full border-2 border-black bg-[#f4f0ff] px-3 py-2 text-xs font-black text-black">
+                Load feed to suggest sources
+              </span>
+            )}
+            {suggestedSources.map((source) => (
+              <button
+                className={`rounded-full border-2 border-black px-3 py-2 text-xs font-black ${
+                  sources.includes(source) ? "bg-[#ffd24a] text-black" : "bg-white text-black"
+                }`}
+                key={source}
+                onClick={() => setSources((current) => toggleValue(current, source))}
+                type="button"
+              >
+                {source}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <label className="text-xs font-black uppercase">
+          Location
+          <select
+            className="mt-2 w-full rounded-full border-2 border-black bg-white px-3 py-2 text-sm font-black text-black"
+            onChange={(event) => setLocation(event.target.value)}
+            value={location}
+          >
+            {regions.map((region) => (
+              <option key={region.value} value={region.value}>
+                {region.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="text-xs font-black uppercase">
+          Reading depth
+          <select
+            className="mt-2 w-full rounded-full border-2 border-black bg-white px-3 py-2 text-sm font-black text-black"
+            onChange={(event) =>
+              setReadingDepth(event.target.value as PersistedFeedPreference["readingDepth"])
+            }
+            value={readingDepth}
+          >
+            <option value="QUICK">Quick scan</option>
+            <option value="BALANCED">Balanced</option>
+            <option value="DEEP">Deep reads</option>
+          </select>
+        </label>
+
+        <label className="flex items-center gap-2 rounded-2xl border-2 border-black bg-[#f4f0ff] p-3 text-sm font-black text-black">
+          <input
+            checked={hideNsfw}
+            onChange={(event) => setHideNsfw(event.target.checked)}
+            type="checkbox"
+          />
+          Hide NSFW or graphic headlines
+        </label>
+
+        <label className="text-xs font-black uppercase">
+          Political sensitivity
+          <select
+            className="mt-2 w-full rounded-full border-2 border-black bg-white px-3 py-2 text-sm font-black text-black"
+            onChange={(event) =>
+              setPoliticalSensitivity(
+                event.target.value as PersistedFeedPreference["politicalSensitivity"]
+              )
+            }
+            value={politicalSensitivity}
+          >
+            <option value="low">Show less politics</option>
+            <option value="balanced">Balanced</option>
+            <option value="high">Allow more politics</option>
+          </select>
+        </label>
+      </div>
+
+      <button
+        className="mt-4 rounded-full border-[3px] border-black bg-[#ffd24a] px-5 py-3 text-sm font-black text-black transition hover:bg-white"
+        onClick={() =>
+          onSave({
+            topics,
+            sources,
+            location,
+            readingDepth,
+            hideNsfw,
+            politicalSensitivity,
+            onboardingComplete: true
+          })
+        }
+        type="button"
+      >
+        Save onboarding
+      </button>
+    </section>
   );
 }
 
