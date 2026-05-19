@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { sendAnalyticsEvent } from "@/components/analytics/analytics-provider";
 import type { CachedArticleSummary } from "@/lib/ai/types";
@@ -20,18 +21,25 @@ import type { ArticlePreview } from "@/types/article";
 
 export function ArticleCard({ article }: { article: ArticlePreview }) {
   const { status } = useSession();
+  const pathname = usePathname();
+  const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [isDisliked, setIsDisliked] = useState(false);
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [summary, setSummary] = useState<CachedArticleSummary | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const canUseArticleActions = Boolean(article.article);
 
+  function redirectToLogin() {
+    router.push(`/login?callbackUrl=${encodeURIComponent(pathname)}`);
+  }
+
   async function saveArticle() {
     if (!article.article || isSaving) return;
 
     if (status !== "authenticated") {
-      setMessage("Sign in to save articles.");
+      redirectToLogin();
       return;
     }
 
@@ -69,7 +77,7 @@ export function ArticleCard({ article }: { article: ArticlePreview }) {
     if (!article.article || isSummarizing) return;
 
     if (status !== "authenticated") {
-      setMessage("Sign in to summarize articles.");
+      redirectToLogin();
       return;
     }
 
@@ -120,7 +128,7 @@ export function ArticleCard({ article }: { article: ArticlePreview }) {
     if (!article.article) return;
 
     if (status !== "authenticated") {
-      setMessage("Sign in to tune your recommendations.");
+      redirectToLogin();
       return;
     }
 
@@ -143,6 +151,7 @@ export function ArticleCard({ article }: { article: ArticlePreview }) {
       source: article.source,
       category: article.category
     });
+    setIsDisliked(true);
     setMessage("Got it. You will see fewer like this.");
   }
 
@@ -276,7 +285,9 @@ export function ArticleCard({ article }: { article: ArticlePreview }) {
             )}
             <button
               aria-label="Show fewer like this"
-              className="grid size-9 place-items-center rounded-full border-[3px] border-black bg-white text-black transition hover:bg-[#f4f0ff] disabled:cursor-not-allowed disabled:opacity-50 sm:size-10"
+              className={`grid size-9 place-items-center rounded-full border-[3px] border-black text-black transition disabled:cursor-not-allowed disabled:opacity-50 sm:size-10 ${
+                isDisliked ? "bg-[#ff6b6b]" : "bg-white hover:bg-[#f4f0ff]"
+              }`}
               disabled={!canUseArticleActions}
               onClick={showFewerLikeThis}
               title="Show fewer like this"

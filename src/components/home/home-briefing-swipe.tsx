@@ -9,6 +9,7 @@ import {
   ThumbsDown
 } from "lucide-react";
 import { useSession } from "next-auth/react";
+import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { sendAnalyticsEvent } from "@/components/analytics/analytics-provider";
 import { toArticlePreview } from "@/lib/articles/preview";
@@ -29,6 +30,8 @@ type SwipeDirection = "left" | "right";
 
 export function HomeBriefingSwipe() {
   const { status } = useSession();
+  const pathname = usePathname();
+  const router = useRouter();
   const [articles, setArticles] = useState<ArticlePreview[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -41,6 +44,10 @@ export function HomeBriefingSwipe() {
   const progress = articles.length
     ? `${Math.min(currentIndex + 1, articles.length)} / ${articles.length}`
     : "0 / 0";
+
+  function redirectToLogin() {
+    router.push(`/login?callbackUrl=${encodeURIComponent(pathname)}`);
+  }
 
   const loadBriefing = useCallback(async () => {
     setIsLoading(true);
@@ -125,7 +132,7 @@ export function HomeBriefingSwipe() {
     if (!currentArticle?.article || isSavingSignal) return;
 
     if (status !== "authenticated") {
-      setError("Sign in to like stories and tune your briefing.");
+      redirectToLogin();
       return;
     }
 
@@ -161,7 +168,7 @@ export function HomeBriefingSwipe() {
     if (!currentArticle?.article || isSavingSignal) return;
 
     if (status !== "authenticated") {
-      setError("Sign in to dislike stories and tune your briefing.");
+      redirectToLogin();
       return;
     }
 
@@ -279,7 +286,9 @@ export function HomeBriefingSwipe() {
 
             <div className="mt-5 grid grid-cols-2 gap-2 min-[430px]:flex min-[430px]:flex-wrap min-[430px]:items-center">
               <button
-                className="inline-flex items-center justify-center gap-2 rounded-full border-[3px] border-black bg-white px-3 py-2 text-sm font-black transition hover:bg-[#f4f0ff] sm:px-4"
+                className={`inline-flex items-center justify-center gap-2 rounded-full border-[3px] border-black px-3 py-2 text-sm font-black transition sm:px-4 ${
+                  lastSwipe === "left" ? "bg-[#ff6b6b]" : "bg-white hover:bg-[#f4f0ff]"
+                }`}
                 disabled={isSavingSignal}
                 onClick={dislikeArticle}
                 type="button"
