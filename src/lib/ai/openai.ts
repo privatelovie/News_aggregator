@@ -62,6 +62,12 @@ export async function summarizeArticleWithOpenAI({
                 maxItems: 3,
                 items: { type: "string" }
               },
+              twoLineSummary: {
+                type: "array",
+                minItems: 2,
+                maxItems: 2,
+                items: { type: "string" }
+              },
               explainSimply: { type: "string" },
               keyTakeaways: {
                 type: "array",
@@ -69,13 +75,16 @@ export async function summarizeArticleWithOpenAI({
                 maxItems: 5,
                 items: { type: "string" }
               },
-              whyThisMatters: { type: "string" }
+              whyThisMatters: { type: "string" },
+              viewpointNote: { type: "string" }
             },
             required: [
               "threeLineSummary",
+              "twoLineSummary",
               "explainSimply",
               "keyTakeaways",
-              "whyThisMatters"
+              "whyThisMatters",
+              "viewpointNote"
             ]
           }
         }
@@ -121,9 +130,11 @@ function parseSummary(value: string): ArticleSummary {
 
   return {
     threeLineSummary: parsed.threeLineSummary.slice(0, 3),
+    twoLineSummary: parsed.twoLineSummary.slice(0, 2),
     explainSimply: parsed.explainSimply,
     keyTakeaways: parsed.keyTakeaways.slice(0, 5),
-    whyThisMatters: parsed.whyThisMatters
+    whyThisMatters: parsed.whyThisMatters,
+    viewpointNote: parsed.viewpointNote
   };
 }
 

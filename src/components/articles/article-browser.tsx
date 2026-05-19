@@ -26,6 +26,7 @@ export function ArticleBrowser({
   const [articles, setArticles] = useState<ArticlePreview[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchMode, setSearchMode] = useState<"keyword" | "semantic">("keyword");
 
   const endpoint = useMemo(() => {
     const params = new URLSearchParams({ pageSize: "18" });
@@ -49,9 +50,39 @@ export function ArticleBrowser({
       setError(null);
 
       try {
-        const response = await fetch(endpoint, { cache: "no-store" });
+        const response =
+          searchMode === "semantic" && submittedQuery.trim()
+            ? await fetch("/api/embeddings/similar", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  query: submittedQuery.trim(),
+                  limit: 18,
+                  useUserProfile: false
+                })
+              })
+            : await fetch(endpoint, { cache: "no-store" });
 
         if (!response.ok) {
+          if (searchMode === "semantic") {
+            const fallbackResponse = await fetch(endpoint, { cache: "no-store" });
+
+            if (!fallbackResponse.ok) {
+              throw new Error("Unable to load articles.");
+            }
+
+            const fallbackPayload = (await fallbackResponse.json()) as {
+              data?: UnifiedArticle[];
+            };
+
+            if (isActive) {
+              setError("Semantic search is unavailable, showing keyword results.");
+              setArticles((fallbackPayload.data ?? []).map(toArticlePreview));
+            }
+
+            return;
+          }
+
           throw new Error("Unable to load articles.");
         }
 
@@ -81,7 +112,7 @@ export function ArticleBrowser({
     return () => {
       isActive = false;
     };
-  }, [endpoint]);
+  }, [endpoint, searchMode, submittedQuery]);
 
   return (
     <main className="mx-auto flex w-full max-w-[86rem] flex-col gap-6 px-3 py-5 sm:px-5 lg:px-6">
@@ -99,26 +130,42 @@ export function ArticleBrowser({
         </div>
 
         <form
-          className="flex items-center gap-2 rounded-full border-[4px] border-black bg-[#c9b8ff] p-2 shadow-[4px_4px_0_#050505]"
+          className="flex flex-col gap-3 rounded-[1.5rem] border-[4px] border-black bg-[#c9b8ff] p-3 shadow-[4px_4px_0_#050505]"
           onSubmit={(event) => {
             event.preventDefault();
             setSubmittedQuery(query);
           }}
         >
-          <Search className="ml-2 size-5 shrink-0 text-black" />
-          <input
-            className="min-w-0 flex-1 bg-transparent px-1 py-2 text-sm font-bold text-black outline-none placeholder:text-black/60"
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search topics, sources, summaries"
-            type="search"
-            value={query}
-          />
-          <button
-            className="rounded-full bg-black px-5 py-2 text-sm font-black text-white shadow-sm transition hover:bg-[#2b0b64]"
-            type="submit"
-          >
-            Search
-          </button>
+          <div className="flex rounded-full border-[3px] border-black bg-white p-1">
+            {(["keyword", "semantic"] as const).map((mode) => (
+              <button
+                className={`flex-1 rounded-full px-3 py-2 text-xs font-black uppercase text-black transition ${
+                  searchMode === mode ? "bg-[#ffd24a]" : "bg-white"
+                }`}
+                key={mode}
+                onClick={() => setSearchMode(mode)}
+                type="button"
+              >
+                {mode}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <Search className="ml-2 size-5 shrink-0 text-black" />
+            <input
+              className="min-w-0 flex-1 bg-transparent px-1 py-2 text-sm font-bold text-black outline-none placeholder:text-black/60"
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search topics, sources, summaries"
+              type="search"
+              value={query}
+            />
+            <button
+              className="rounded-full bg-black px-5 py-2 text-sm font-black text-white shadow-sm transition hover:bg-[#2b0b64]"
+              type="submit"
+            >
+              Search
+            </button>
+          </div>
         </form>
       </section>
 

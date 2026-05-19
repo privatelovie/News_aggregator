@@ -8,11 +8,6 @@ import { getCurrentUser } from "@/lib/session";
 
 export async function POST(request: Request) {
   const session = await getCurrentUser();
-
-  if (!session?.user?.id) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-  }
-
   const body = await request.json().catch(() => null);
   const parsed = similaritySearchRequestSchema.safeParse(body);
 
@@ -21,6 +16,10 @@ export async function POST(request: Request) {
       { message: "Invalid similarity search payload." },
       { status: 400 }
     );
+  }
+
+  if (!session?.user?.id && parsed.data.useUserProfile) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
   if (!parsed.data.query && !parsed.data.useUserProfile) {
@@ -32,7 +31,7 @@ export async function POST(request: Request) {
 
   try {
     const articles = parsed.data.useUserProfile
-      ? await searchSimilarArticlesForUser(session.user.id, parsed.data.limit)
+      ? await searchSimilarArticlesForUser(session!.user.id, parsed.data.limit)
       : await searchSimilarArticlesByText(parsed.data.query ?? "", parsed.data.limit);
 
     return NextResponse.json({

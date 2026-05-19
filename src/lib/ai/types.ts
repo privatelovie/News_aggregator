@@ -9,9 +9,11 @@ export type ArticleSummaryInput = {
 
 export type ArticleSummary = {
   threeLineSummary: string[];
+  twoLineSummary: string[];
   explainSimply: string;
   keyTakeaways: string[];
   whyThisMatters: string;
+  viewpointNote: string;
 };
 
 export type CachedArticleSummary = ArticleSummary & {

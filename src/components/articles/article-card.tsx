@@ -151,6 +151,12 @@ export function ArticleCard({ article }: { article: ArticlePreview }) {
           {article.summary}
         </p>
 
+        {article.explanation && (
+          <p className="mt-3 rounded-xl border-2 border-black bg-[#f4f0ff] px-3 py-2 text-xs font-bold text-black">
+            {article.explanation}
+          </p>
+        )}
+
         {message && (
           <p className="mt-4 rounded-xl border-[3px] border-black bg-[#ffd24a] px-3 py-2 text-xs font-bold text-black">
             {message}
@@ -210,7 +216,13 @@ export function ArticleCard({ article }: { article: ArticlePreview }) {
       </div>
 
       {summary && (
-        <SummaryDialog summary={summary} title={article.title} onClose={() => setSummary(null)} />
+        <SummaryDialog
+          source={article.source}
+          summary={summary}
+          title={article.title}
+          url={article.url}
+          onClose={() => setSummary(null)}
+        />
       )}
     </article>
   );
@@ -247,12 +259,16 @@ function ArticleImage({ article }: { article: ArticlePreview }) {
 
 function SummaryDialog({
   onClose,
+  source,
   summary,
-  title
+  title,
+  url
 }: {
   onClose: () => void;
+  source: string;
   summary: CachedArticleSummary;
   title: string;
+  url?: string;
 }) {
   return (
     <div className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/70 px-4 py-6 backdrop-blur-sm">
@@ -278,23 +294,23 @@ function SummaryDialog({
 
         <div className="mt-5 max-h-[65vh] space-y-5 overflow-y-auto border-t-[4px] border-black p-5 text-sm font-medium leading-6 text-slate-700 dark:text-slate-300">
           <div>
-            <h4 className="font-semibold text-slate-950 dark:text-white">
-              Three-line brief
+            <h4 className="font-black uppercase text-slate-950 dark:text-white">
+              2-line summary
             </h4>
             <ul className="mt-2 space-y-2 break-words">
-              {summary.threeLineSummary.map((line) => (
+              {summary.twoLineSummary.map((line) => (
                 <li key={line}>{line}</li>
               ))}
             </ul>
           </div>
           <div>
-            <h4 className="font-semibold text-slate-950 dark:text-white">
+            <h4 className="font-black uppercase text-slate-950 dark:text-white">
               Explain simply
             </h4>
             <p className="mt-2 break-words">{summary.explainSimply}</p>
           </div>
           <div>
-            <h4 className="font-semibold text-slate-950 dark:text-white">
+            <h4 className="font-black uppercase text-slate-950 dark:text-white">
               Key takeaways
             </h4>
             <ul className="mt-2 list-disc space-y-1 break-words pl-5">
@@ -304,10 +320,43 @@ function SummaryDialog({
             </ul>
           </div>
           <div>
-            <h4 className="font-semibold text-slate-950 dark:text-white">
+            <h4 className="font-black uppercase text-slate-950 dark:text-white">
               Why this matters
             </h4>
             <p className="mt-2 break-words">{summary.whyThisMatters}</p>
+          </div>
+          <div className="rounded-2xl border-[3px] border-black bg-[#ffd24a] p-4 text-black">
+            <h4 className="font-black uppercase">Potential bias / viewpoint note</h4>
+            <p className="mt-2 break-words">{summary.viewpointNote}</p>
+          </div>
+          <div>
+            <h4 className="font-black uppercase text-slate-950 dark:text-white">
+              Source citations
+            </h4>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {url ? (
+                <a
+                  className="rounded-full border-2 border-black bg-white px-3 py-1 text-xs font-black text-black transition hover:bg-[#c9b8ff]"
+                  href={url}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  {source}
+                </a>
+              ) : (
+                <span className="rounded-full border-2 border-black bg-white px-3 py-1 text-xs font-black text-black">
+                  {source}
+                </span>
+              )}
+              <span className="rounded-full border-2 border-black bg-white px-3 py-1 text-xs font-black text-black">
+                Model {summary.model}
+              </span>
+              {summary.articleHash && (
+                <span className="rounded-full border-2 border-black bg-white px-3 py-1 text-xs font-black text-black">
+                  Summary ID {summary.articleHash.slice(0, 8)}
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </section>

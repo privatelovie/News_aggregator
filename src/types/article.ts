@@ -19,4 +19,6 @@ export type ArticlePreview = {
   readTime?: string;
   trend?: string;
   article?: UnifiedArticle;
+  explanation?: string;
+  relevanceScore?: number;
 };

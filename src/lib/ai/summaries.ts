@@ -27,9 +27,11 @@ export async function getArticleSummary(
       cached: true,
       model,
       threeLineSummary: cached.threeLineSummary,
+      twoLineSummary: cached.threeLineSummary.slice(0, 2),
       explainSimply: cached.explainSimply,
       keyTakeaways: cached.keyTakeaways,
-      whyThisMatters: cached.whyThisMatters
+      whyThisMatters: cached.whyThisMatters,
+      viewpointNote: buildViewpointNote(article)
     };
   }
 
@@ -154,14 +156,22 @@ function summarizeArticleLocally(article: ArticleSummaryInput): ArticleSummary {
 
   return {
     threeLineSummary,
+    twoLineSummary: threeLineSummary.slice(0, 2),
     explainSimply:
       threeLineSummary[0] ??
       `${article.title} is the main story, but there is not enough article text for a deeper summary.`,
     keyTakeaways,
     whyThisMatters:
       rankedSentences[3] ??
-      "This matters because it may affect readers following this topic, region, or source."
+      "This matters because it may affect readers following this topic, region, or source.",
+    viewpointNote: buildViewpointNote(article)
   };
+}
+
+function buildViewpointNote(article: ArticleSummaryInput) {
+  return `This summary is based on available text from ${
+    article.source ?? "the source"
+  }. Compare with the original article before treating it as complete context.`;
 }
 
 function normalizeText(value: string) {
