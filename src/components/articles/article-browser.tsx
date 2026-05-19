@@ -123,13 +123,13 @@ export function ArticleBrowser({
   }, [endpoint, searchMode, submittedQuery]);
 
   return (
-    <main className="mx-auto flex w-full max-w-[86rem] flex-col gap-6 px-3 py-5 sm:px-5 lg:px-6">
-      <section className="grid gap-5 rounded-[2rem] border-[5px] border-black bg-white p-5 shadow-[10px_10px_0_#050505] lg:grid-cols-[minmax(0,1fr)_minmax(18rem,28rem)] lg:items-end dark:bg-slate-950">
+    <main className="mx-auto flex w-full max-w-[86rem] flex-col gap-5 px-4 py-5 sm:gap-6 sm:px-5 lg:px-6">
+      <section className="grid min-w-0 gap-4 rounded-[1.25rem] border-[3px] border-black bg-white p-4 shadow-[5px_5px_0_#050505] sm:gap-5 sm:rounded-[2rem] sm:border-[5px] sm:p-5 sm:shadow-[10px_10px_0_#050505] lg:grid-cols-[minmax(0,1fr)_minmax(18rem,28rem)] lg:items-end dark:bg-slate-950">
         <div>
           <p className="text-sm font-black uppercase tracking-wide text-[#2b0b64] dark:text-[#ffd24a]">
             Discover
           </p>
-          <h1 className="mt-3 text-5xl font-black uppercase tracking-normal text-black dark:text-white">
+          <h1 className="mt-3 break-words text-4xl font-black uppercase tracking-normal text-black sm:text-5xl dark:text-white">
             {title}
           </h1>
           <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-slate-700 dark:text-slate-300">
@@ -138,7 +138,7 @@ export function ArticleBrowser({
         </div>
 
         <form
-          className="flex flex-col gap-3 rounded-[1.5rem] border-[4px] border-black bg-[#c9b8ff] p-3 shadow-[4px_4px_0_#050505]"
+          className="flex min-w-0 flex-col gap-3 rounded-[1.25rem] border-[3px] border-black bg-[#c9b8ff] p-3 shadow-[4px_4px_0_#050505] sm:rounded-[1.5rem] sm:border-[4px]"
           onSubmit={(event) => {
             event.preventDefault();
             setSubmittedQuery(query);
@@ -148,10 +148,10 @@ export function ArticleBrowser({
             });
           }}
         >
-          <div className="flex rounded-full border-[3px] border-black bg-white p-1">
+          <div className="flex min-w-0 rounded-full border-[3px] border-black bg-white p-1">
             {(["keyword", "semantic"] as const).map((mode) => (
               <button
-                className={`flex-1 rounded-full px-3 py-2 text-xs font-black uppercase text-black transition ${
+                className={`min-w-0 flex-1 rounded-full px-2 py-2 text-xs font-black uppercase text-black transition sm:px-3 ${
                   searchMode === mode ? "bg-[#ffd24a]" : "bg-white"
                 }`}
                 key={mode}
@@ -162,17 +162,19 @@ export function ArticleBrowser({
               </button>
             ))}
           </div>
-          <div className="flex items-center gap-2">
-            <Search className="ml-2 size-5 shrink-0 text-black" />
-            <input
-              className="min-w-0 flex-1 bg-transparent px-1 py-2 text-sm font-bold text-black outline-none placeholder:text-black/60"
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search topics, sources, summaries"
-              type="search"
-              value={query}
-            />
+          <div className="grid min-w-0 gap-2 sm:flex sm:items-center">
+            <label className="flex min-w-0 items-center gap-2 rounded-full border-[3px] border-black bg-white px-3 py-2 sm:flex-1 sm:border-0 sm:bg-transparent sm:px-0">
+              <Search className="size-5 shrink-0 text-black sm:ml-2" />
+              <input
+                className="min-w-0 flex-1 bg-transparent px-1 py-1 text-sm font-bold text-black outline-none placeholder:text-black/60"
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Search topics, sources, summaries"
+                type="search"
+                value={query}
+              />
+            </label>
             <button
-              className="rounded-full bg-black px-5 py-2 text-sm font-black text-white shadow-sm transition hover:bg-[#2b0b64]"
+              className="w-full rounded-full bg-black px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-[#2b0b64] sm:w-auto sm:py-2"
               type="submit"
             >
               Search
