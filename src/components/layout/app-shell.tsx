@@ -34,18 +34,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div
       className={cn(
-        "min-h-screen bg-[#f4f0ff] p-2 text-slate-950 sm:p-4 dark:bg-[#050505] dark:text-white",
+        "min-h-screen bg-[#f4f0ff] text-slate-950 sm:p-4 dark:bg-[#050505] dark:text-white",
         isDark && "dark"
       )}
     >
-      <div className="mx-auto min-h-[calc(100vh-1rem)] max-w-[92rem] overflow-hidden rounded-[1.75rem] border-[6px] border-black bg-[#f8f5ff] shadow-[0_24px_80px_rgba(0,0,0,0.28)] dark:bg-slate-950">
-        <header className="sticky top-2 z-40 bg-black px-3 py-3 text-white sm:top-4 sm:px-5">
+      <div className="mx-auto min-h-screen max-w-[92rem] overflow-hidden bg-[#f8f5ff] shadow-[0_24px_80px_rgba(0,0,0,0.28)] sm:min-h-[calc(100vh-2rem)] sm:rounded-[1.75rem] sm:border-[6px] sm:border-black dark:bg-slate-950">
+        <header className="sticky top-0 z-40 bg-black px-4 py-3 text-white sm:top-4 sm:px-5">
           <div className="mx-auto flex min-h-14 w-full max-w-[86rem] items-center justify-between gap-3">
-          <Link className="flex items-center gap-2 text-lg font-black tracking-tight" href="/">
-            <span className="grid size-9 place-items-center rounded-md bg-white text-black shadow-sm">
+          <Link className="flex min-w-0 items-center gap-2 text-base font-black tracking-tight sm:text-lg" href="/">
+            <span className="grid size-9 shrink-0 place-items-center rounded-md bg-white text-black shadow-sm">
               <Newspaper className="size-5" />
             </span>
-            <span>Neural News</span>
+            <span className="truncate">Neural News</span>
           </Link>
 
           <nav className="hidden items-center gap-2 md:flex">
@@ -75,14 +75,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </Link>
             <Link
               aria-label="Search"
-              className="grid size-10 place-items-center rounded-full border-2 border-white/30 bg-black text-white transition hover:border-white lg:hidden"
+              className="grid size-9 place-items-center rounded-full border-2 border-white/30 bg-black text-white transition hover:border-white sm:size-10 lg:hidden"
               href="/search"
             >
               <Search className="size-4" />
             </Link>
             <button
               aria-label="Toggle dark mode"
-              className="grid size-10 place-items-center rounded-full border-2 border-white/30 bg-black text-white transition hover:border-white"
+              className="grid size-9 place-items-center rounded-full border-2 border-white/30 bg-black text-white transition hover:border-white sm:size-10"
               onClick={toggleTheme}
               type="button"
             >
@@ -100,7 +100,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </Link>
                 <button
                   aria-label="Sign out"
-                  className="grid size-10 place-items-center rounded-full bg-[#ffd24a] text-black shadow-sm transition hover:bg-white"
+                  className="grid size-9 place-items-center rounded-full bg-[#ffd24a] text-black shadow-sm transition hover:bg-white sm:size-10"
                   onClick={() => signOut({ callbackUrl: "/" })}
                   type="button"
                 >
@@ -109,7 +109,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </>
             ) : (
               <Link
-                className="rounded-full bg-[#ffd24a] px-5 py-2 text-sm font-bold text-black shadow-sm transition hover:bg-white"
+                className="rounded-full bg-[#ffd24a] px-4 py-2 text-sm font-bold text-black shadow-sm transition hover:bg-white sm:px-5"
                 href="/login"
               >
                 Login

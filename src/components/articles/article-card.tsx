@@ -147,13 +147,13 @@ export function ArticleCard({ article }: { article: ArticlePreview }) {
   }
 
   const title = (
-    <h2 className="mt-4 text-2xl font-black leading-tight tracking-normal text-black transition group-hover/link:text-[#2b0b64] dark:text-white dark:group-hover/link:text-[#ffd24a]">
+    <h2 className="mt-4 text-xl font-black leading-tight tracking-normal text-black transition sm:text-2xl group-hover/link:text-[#2b0b64] dark:text-white dark:group-hover/link:text-[#ffd24a]">
       {article.title}
     </h2>
   );
 
   return (
-    <article className="group flex min-h-[30rem] flex-col overflow-hidden rounded-[1.5rem] border-[4px] border-black bg-white shadow-[6px_6px_0_#050505] transition hover:-translate-y-1 hover:shadow-[10px_10px_0_#050505] dark:bg-slate-950">
+    <article className="group flex min-h-[26rem] flex-col overflow-hidden rounded-[1.25rem] border-[3px] border-black bg-white shadow-[4px_4px_0_#050505] transition hover:-translate-y-1 hover:shadow-[7px_7px_0_#050505] sm:min-h-[30rem] sm:rounded-[1.5rem] sm:border-[4px] sm:shadow-[6px_6px_0_#050505] sm:hover:shadow-[10px_10px_0_#050505] dark:bg-slate-950">
       {article.url ? (
         <a
           className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
@@ -227,7 +227,7 @@ export function ArticleCard({ article }: { article: ArticlePreview }) {
           <div className="flex shrink-0 items-center gap-2">
             <button
               aria-label="Summarize article"
-              className="grid size-10 place-items-center rounded-full border-[3px] border-black bg-white text-black transition hover:bg-[#c9b8ff] disabled:cursor-not-allowed disabled:opacity-50"
+              className="grid size-9 place-items-center rounded-full border-[3px] border-black bg-white text-black transition hover:bg-[#c9b8ff] disabled:cursor-not-allowed disabled:opacity-50 sm:size-10"
               disabled={!canUseArticleActions || isSummarizing}
               onClick={summarizeArticle}
               title="Summarize"
@@ -241,7 +241,7 @@ export function ArticleCard({ article }: { article: ArticlePreview }) {
             </button>
             <button
               aria-label="Save article"
-              className="grid size-10 place-items-center rounded-full border-[3px] border-black bg-white text-black transition hover:bg-[#ffd24a] disabled:cursor-not-allowed disabled:opacity-50"
+              className="grid size-9 place-items-center rounded-full border-[3px] border-black bg-white text-black transition hover:bg-[#ffd24a] disabled:cursor-not-allowed disabled:opacity-50 sm:size-10"
               disabled={!canUseArticleActions || isSaving}
               onClick={saveArticle}
               title="Save"
@@ -258,7 +258,7 @@ export function ArticleCard({ article }: { article: ArticlePreview }) {
             {article.url && (
               <a
                 aria-label="Open article"
-                className="grid size-10 place-items-center rounded-full border-[3px] border-black bg-black text-white transition hover:bg-[#2b0b64] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ffd24a]"
+                className="grid size-9 place-items-center rounded-full border-[3px] border-black bg-black text-white transition hover:bg-[#2b0b64] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ffd24a] sm:size-10"
                 href={article.url}
                 onClick={() =>
                   sendAnalyticsEvent("article_open", {
@@ -276,7 +276,7 @@ export function ArticleCard({ article }: { article: ArticlePreview }) {
             )}
             <button
               aria-label="Show fewer like this"
-              className="grid size-10 place-items-center rounded-full border-[3px] border-black bg-white text-black transition hover:bg-[#f4f0ff] disabled:cursor-not-allowed disabled:opacity-50"
+              className="grid size-9 place-items-center rounded-full border-[3px] border-black bg-white text-black transition hover:bg-[#f4f0ff] disabled:cursor-not-allowed disabled:opacity-50 sm:size-10"
               disabled={!canUseArticleActions}
               onClick={showFewerLikeThis}
               title="Show fewer like this"

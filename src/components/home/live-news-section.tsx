@@ -71,13 +71,13 @@ export function LiveNewsSection() {
   }, []);
 
   return (
-    <section className="space-y-4 rounded-[2rem] border-[5px] border-black bg-white p-4 shadow-[10px_10px_0_#050505] sm:p-5 dark:bg-slate-950">
-      <div className="flex flex-col gap-3 border-b-[5px] border-black pb-4 sm:flex-row sm:items-end sm:justify-between">
+    <section className="space-y-4 rounded-[1.25rem] border-[3px] border-black bg-white p-4 shadow-[5px_5px_0_#050505] sm:rounded-[2rem] sm:border-[5px] sm:p-5 sm:shadow-[10px_10px_0_#050505] dark:bg-slate-950">
+      <div className="flex flex-col gap-3 border-b-[3px] border-black pb-4 sm:flex-row sm:items-end sm:justify-between sm:border-b-[5px]">
         <div>
           <p className="text-sm font-black uppercase tracking-wide text-[#2b0b64] dark:text-[#ffd24a]">
             Live coverage
           </p>
-          <h2 className="mt-2 text-4xl font-black uppercase tracking-normal text-black dark:text-white">
+          <h2 className="mt-2 text-3xl font-black uppercase tracking-normal text-black sm:text-4xl dark:text-white">
             Latest stories
           </h2>
         </div>

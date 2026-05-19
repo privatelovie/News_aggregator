@@ -17,32 +17,32 @@ const quickLinks = [
 
 export default function HomePage() {
   return (
-    <main className="mx-auto flex w-full max-w-[86rem] flex-col gap-6 px-3 py-4 sm:px-5 lg:px-6">
-      <section className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_26rem]">
-        <div className="relative overflow-hidden rounded-[2rem] border-[5px] border-black bg-white p-5 shadow-[10px_10px_0_#050505] sm:p-7 lg:min-h-[32rem]">
+    <main className="mx-auto flex w-full max-w-[86rem] flex-col gap-5 px-4 py-4 sm:gap-6 sm:px-5 lg:px-6">
+      <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_26rem]">
+        <div className="relative overflow-hidden rounded-[1.25rem] border-[3px] border-black bg-white p-4 shadow-[5px_5px_0_#050505] sm:rounded-[2rem] sm:border-[5px] sm:p-7 sm:shadow-[10px_10px_0_#050505] lg:min-h-[32rem]">
           <div className="absolute right-8 top-8 hidden h-44 w-44 rounded-full border-2 border-[#c9b8ff] lg:block" />
           <div className="absolute bottom-12 right-16 hidden h-28 w-28 rounded-[2rem] border-[12px] border-[#c9b8ff] border-l-transparent border-t-transparent lg:block" />
-          <p className="inline-flex items-center gap-2 rounded-full border-2 border-black bg-[#ffd24a] px-4 py-2 text-sm font-black uppercase tracking-wide text-black">
+          <p className="inline-flex items-center gap-2 rounded-full border-2 border-black bg-[#ffd24a] px-3 py-2 text-xs font-black uppercase tracking-wide text-black sm:px-4 sm:text-sm">
             <Sparkles className="size-4" />
             Neural News
           </p>
-          <h1 className="mt-6 max-w-4xl text-[clamp(2.5rem,5vw,5.6rem)] font-black uppercase leading-[0.9] tracking-normal text-[#2b0b64]">
+          <h1 className="mt-5 max-w-4xl text-[clamp(2.25rem,12vw,5.6rem)] font-black uppercase leading-[0.92] tracking-normal text-[#2b0b64] sm:mt-6">
             News that fits your world.
           </h1>
-          <p className="mt-6 max-w-2xl text-lg font-medium leading-8 text-slate-700">
+          <p className="mt-4 max-w-2xl text-base font-medium leading-7 text-slate-700 sm:mt-6 sm:text-lg sm:leading-8">
             A live news board with topic tuning, regional coverage, saved reads,
             and instant summaries when the story gets too dense.
           </p>
-          <div className="mt-7 flex flex-wrap gap-3">
+          <div className="mt-5 grid gap-3 min-[420px]:flex min-[420px]:flex-wrap sm:mt-7">
             <Link
-              className="inline-flex items-center gap-2 rounded-full border-[3px] border-black bg-black px-5 py-3 text-sm font-black text-white shadow-[4px_4px_0_#ffd24a] transition hover:-translate-y-0.5"
+              className="inline-flex items-center justify-center gap-2 rounded-full border-[3px] border-black bg-black px-5 py-3 text-sm font-black text-white shadow-[4px_4px_0_#ffd24a] transition hover:-translate-y-0.5"
               href="/feed"
             >
               Personalize feed
               <ArrowRight className="size-4" />
             </Link>
             <Link
-              className="inline-flex items-center gap-2 rounded-full border-[3px] border-black bg-white px-5 py-3 text-sm font-black text-black transition hover:bg-[#ffd24a]"
+              className="inline-flex items-center justify-center gap-2 rounded-full border-[3px] border-black bg-white px-5 py-3 text-sm font-black text-black transition hover:bg-[#ffd24a]"
               href="/search"
             >
               Search news
@@ -52,11 +52,11 @@ export default function HomePage() {
           <HomeBriefingSwipe />
         </div>
 
-        <aside className="overflow-hidden rounded-[2rem] border-[5px] border-black bg-[#c9b8ff] shadow-[10px_10px_0_#050505]">
-          <div className="border-b-[5px] border-black bg-[#ffd24a] px-5 py-3 text-center text-sm font-black uppercase text-black">
+        <aside className="overflow-hidden rounded-[1.25rem] border-[3px] border-black bg-[#c9b8ff] shadow-[5px_5px_0_#050505] sm:rounded-[2rem] sm:border-[5px] sm:shadow-[10px_10px_0_#050505]">
+          <div className="border-b-[3px] border-black bg-[#ffd24a] px-5 py-3 text-center text-sm font-black uppercase text-black sm:border-b-[5px]">
             Search and collect
           </div>
-          <div className="p-5">
+          <div className="p-4 sm:p-5">
           <form action="/search">
             <label className="block text-sm font-black uppercase text-black">
               Search live news
@@ -87,7 +87,7 @@ export default function HomePage() {
         </aside>
       </section>
 
-      <div className="overflow-hidden rounded-full border-[4px] border-black bg-[#ffd24a] py-2 text-black">
+      <div className="overflow-hidden rounded-full border-[3px] border-black bg-[#ffd24a] py-2 text-black sm:border-[4px]">
         <div className="news-marquee flex min-w-max gap-5 px-4 text-sm font-black uppercase italic">
           {[...["Live news", "Personalized feed", "API analytics", "Save articles", "Free summaries", "Regional coverage"], ...["Live news", "Personalized feed", "API analytics", "Save articles", "Free summaries", "Regional coverage"]].map((item, index) => (
             <span className="flex items-center gap-5" key={`${item}-${index}`}>

@@ -219,20 +219,20 @@ export function HomeBriefingSwipe() {
   }
 
   return (
-    <section className="mt-7 max-w-3xl">
-      <div className="rounded-[1.5rem] border-[4px] border-black bg-[#c9b8ff] p-3 shadow-[8px_8px_0_#050505]">
-        <div className="flex items-center justify-between gap-3 border-b-[4px] border-black pb-3">
-          <div>
+    <section className="mt-5 w-full max-w-3xl sm:mt-7">
+      <div className="rounded-[1.25rem] border-[3px] border-black bg-[#c9b8ff] p-2 shadow-[4px_4px_0_#050505] sm:rounded-[1.5rem] sm:border-[4px] sm:p-3 sm:shadow-[8px_8px_0_#050505]">
+        <div className="flex items-center justify-between gap-3 border-b-[3px] border-black pb-3 sm:border-b-[4px]">
+          <div className="min-w-0">
             <p className="text-xs font-black uppercase text-black">
               Daily briefing
             </p>
-            <h2 className="text-xl font-black uppercase text-black">
+            <h2 className="text-lg font-black uppercase leading-tight text-black sm:text-xl">
               Swipe your For You story
             </h2>
           </div>
           <button
             aria-label="Reload briefing"
-            className="grid size-10 place-items-center rounded-full border-[3px] border-black bg-white text-black transition hover:bg-[#ffd24a]"
+            className="grid size-9 shrink-0 place-items-center rounded-full border-[3px] border-black bg-white text-black transition hover:bg-[#ffd24a] sm:size-10"
             onClick={() => void loadBriefing()}
             type="button"
           >
@@ -247,20 +247,20 @@ export function HomeBriefingSwipe() {
         )}
 
         {isLoading ? (
-          <div className="mt-3 grid min-h-72 place-items-center rounded-[1.25rem] border-[3px] border-black bg-white text-black">
+          <div className="mt-3 grid min-h-56 place-items-center rounded-[1rem] border-[3px] border-black bg-white text-black sm:min-h-72 sm:rounded-[1.25rem]">
             <Loader2 className="size-8 animate-spin" />
           </div>
         ) : currentArticle ? (
           <article
-            className={`mt-3 min-h-80 rounded-[1.25rem] border-[3px] border-black p-4 text-black transition duration-200 ${cardClassName}`}
+            className={`mt-3 min-h-[26rem] rounded-[1rem] border-[3px] border-black p-3 text-black transition duration-200 sm:min-h-80 sm:rounded-[1.25rem] sm:p-4 ${cardClassName}`}
           >
             <div className="flex items-center justify-between gap-3 text-xs font-black uppercase">
-              <span className="rounded-full border-2 border-black bg-[#ffd24a] px-3 py-1">
+              <span className="min-w-0 truncate rounded-full border-2 border-black bg-[#ffd24a] px-3 py-1">
                 {currentArticle.source}
               </span>
-              <span>{progress}</span>
+              <span className="shrink-0">{progress}</span>
             </div>
-            <h3 className="mt-4 text-3xl font-black leading-tight">
+            <h3 className="mt-4 text-[1.55rem] font-black leading-tight sm:text-3xl">
               {currentArticle.title}
             </h3>
             <p className="mt-3 line-clamp-4 text-sm font-bold leading-6 text-black/75">
@@ -277,9 +277,9 @@ export function HomeBriefingSwipe() {
               </p>
             )}
 
-            <div className="mt-5 flex flex-wrap items-center gap-2">
+            <div className="mt-5 grid grid-cols-2 gap-2 min-[430px]:flex min-[430px]:flex-wrap min-[430px]:items-center">
               <button
-                className="inline-flex items-center gap-2 rounded-full border-[3px] border-black bg-white px-4 py-2 text-sm font-black transition hover:bg-[#f4f0ff]"
+                className="inline-flex items-center justify-center gap-2 rounded-full border-[3px] border-black bg-white px-3 py-2 text-sm font-black transition hover:bg-[#f4f0ff] sm:px-4"
                 disabled={isSavingSignal}
                 onClick={dislikeArticle}
                 type="button"
@@ -288,7 +288,7 @@ export function HomeBriefingSwipe() {
                 Dislike
               </button>
               <button
-                className="inline-flex items-center gap-2 rounded-full border-[3px] border-black bg-[#ffd24a] px-4 py-2 text-sm font-black transition hover:bg-white"
+                className="inline-flex items-center justify-center gap-2 rounded-full border-[3px] border-black bg-[#ffd24a] px-3 py-2 text-sm font-black transition hover:bg-white sm:px-4"
                 disabled={isSavingSignal}
                 onClick={likeArticle}
                 type="button"
@@ -297,7 +297,7 @@ export function HomeBriefingSwipe() {
                 Like
               </button>
               <button
-                className="inline-flex items-center gap-2 rounded-full border-[3px] border-black bg-white px-4 py-2 text-sm font-black transition hover:bg-[#ffd24a]"
+                className="inline-flex items-center justify-center gap-2 rounded-full border-[3px] border-black bg-white px-3 py-2 text-sm font-black transition hover:bg-[#ffd24a] sm:px-4"
                 onClick={skipArticle}
                 type="button"
               >
@@ -306,7 +306,7 @@ export function HomeBriefingSwipe() {
               </button>
               {currentArticle.url && (
                 <a
-                  className="inline-flex items-center gap-2 rounded-full border-[3px] border-black bg-black px-4 py-2 text-sm font-black text-white transition hover:bg-[#2b0b64]"
+                  className="inline-flex items-center justify-center gap-2 rounded-full border-[3px] border-black bg-black px-3 py-2 text-sm font-black text-white transition hover:bg-[#2b0b64] sm:px-4"
                   href={currentArticle.url}
                   rel="noreferrer"
                   target="_blank"
