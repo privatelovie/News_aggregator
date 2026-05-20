@@ -14,7 +14,8 @@ import {
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { sendAnalyticsEvent } from "@/components/analytics/analytics-provider";
 import type { CachedArticleSummary } from "@/lib/ai/types";
 import type { ArticlePreview } from "@/types/article";
@@ -31,6 +32,26 @@ export function ArticleCard({ article }: { article: ArticlePreview }) {
   const [summary, setSummary] = useState<CachedArticleSummary | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const canUseArticleActions = Boolean(article.article);
+
+  useEffect(() => {
+    if (!isDetailsOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsDetailsOpen(false);
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isDetailsOpen]);
 
   function redirectToLogin() {
     router.push(`/login?callbackUrl=${encodeURIComponent(pathname)}`);
@@ -281,7 +302,7 @@ export function ArticleCard({ article }: { article: ArticlePreview }) {
         </div>
       </div>
 
-      {isDetailsOpen && (
+      {isDetailsOpen && typeof document !== "undefined" && createPortal(
         <ArticleDetailsDialog
           article={article}
           isDisliked={isDisliked}
@@ -294,7 +315,8 @@ export function ArticleCard({ article }: { article: ArticlePreview }) {
           onSummarize={summarizeArticle}
           onTrackOpen={trackArticleOpen}
           summary={summary}
-        />
+        />,
+        document.body
       )}
     </article>
   );
@@ -355,8 +377,18 @@ function ArticleDetailsDialog({
   summary: CachedArticleSummary | null;
 }) {
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 px-3 py-4 backdrop-blur-sm sm:px-4 sm:py-6">
-      <section className="mx-auto w-full max-w-3xl overflow-hidden rounded-[1.25rem] border-[3px] border-black bg-white shadow-[7px_7px_0_#ffd24a] sm:rounded-[1.5rem] sm:border-[5px] sm:shadow-[12px_12px_0_#ffd24a] dark:bg-slate-950">
+    <div
+      className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-black/70 px-3 py-4 backdrop-blur-sm sm:px-4 sm:py-6"
+      onClick={onClose}
+      role="presentation"
+    >
+      <section
+        aria-label="Article brief"
+        aria-modal="true"
+        className="flex max-h-[calc(100vh-2rem)] w-full max-w-3xl flex-col overflow-hidden rounded-[1.25rem] border-[3px] border-black bg-white shadow-[7px_7px_0_#ffd24a] sm:max-h-[calc(100vh-3rem)] sm:rounded-[1.5rem] sm:border-[5px] sm:shadow-[12px_12px_0_#ffd24a] dark:bg-slate-950"
+        onClick={(event) => event.stopPropagation()}
+        role="dialog"
+      >
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0 p-4 pb-0 sm:p-5 sm:pb-0">
             <p className="text-sm font-black uppercase text-[#2b0b64] dark:text-[#ffd24a]">
@@ -387,7 +419,7 @@ function ArticleDetailsDialog({
           </button>
         </div>
 
-        <div className="mt-5 space-y-5 border-t-[4px] border-black p-4 text-sm font-medium leading-6 text-slate-700 sm:p-5 dark:text-slate-300">
+        <div className="mt-5 min-h-0 flex-1 space-y-5 overflow-y-auto border-t-[4px] border-black p-4 text-sm font-medium leading-6 text-slate-700 sm:p-5 dark:text-slate-300">
           <div>
             <h4 className="font-black uppercase text-slate-950 dark:text-white">
               What this story says
@@ -402,6 +434,84 @@ function ArticleDetailsDialog({
             </div>
           )}
 
+          {!summary && (
+            <p className="rounded-2xl border-[3px] border-black bg-[#ffd24a] p-4 text-sm font-black text-black">
+              Tap Summarize to generate a clearer brief, why it matters, and source notes.
+            </p>
+          )}
+
+          {summary && (
+            <>
+              <div>
+                <h4 className="font-black uppercase text-slate-950 dark:text-white">
+                  2-line summary
+                </h4>
+                <ul className="mt-2 space-y-2 break-words">
+                  {summary.twoLineSummary.map((line) => (
+                    <li key={line}>{line}</li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-black uppercase text-slate-950 dark:text-white">
+                  Explain simply
+                </h4>
+                <p className="mt-2 break-words">{summary.explainSimply}</p>
+              </div>
+              <div>
+                <h4 className="font-black uppercase text-slate-950 dark:text-white">
+                  Key takeaways
+                </h4>
+                <ul className="mt-2 list-disc space-y-1 break-words pl-5">
+                  {summary.keyTakeaways.map((takeaway) => (
+                    <li key={takeaway}>{takeaway}</li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-black uppercase text-slate-950 dark:text-white">
+                  Why this matters
+                </h4>
+                <p className="mt-2 break-words">{summary.whyThisMatters}</p>
+              </div>
+              <div className="rounded-2xl border-[3px] border-black bg-[#ffd24a] p-4 text-black">
+                <h4 className="font-black uppercase">Potential bias / viewpoint note</h4>
+                <p className="mt-2 break-words">{summary.viewpointNote}</p>
+              </div>
+              <div>
+                <h4 className="font-black uppercase text-slate-950 dark:text-white">
+                  Source citations
+                </h4>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {article.url ? (
+                    <a
+                      className="rounded-full border-2 border-black bg-white px-3 py-1 text-xs font-black text-black transition hover:bg-[#c9b8ff]"
+                      href={article.url}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      {article.source}
+                    </a>
+                  ) : (
+                    <span className="rounded-full border-2 border-black bg-white px-3 py-1 text-xs font-black text-black">
+                      {article.source}
+                    </span>
+                  )}
+                  <span className="rounded-full border-2 border-black bg-white px-3 py-1 text-xs font-black text-black">
+                    Model {summary.model}
+                  </span>
+                  {summary.articleHash && (
+                    <span className="rounded-full border-2 border-black bg-white px-3 py-1 text-xs font-black text-black">
+                      Summary ID {summary.articleHash.slice(0, 8)}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+
+        <div className="shrink-0 border-t-[4px] border-black bg-[#c9b8ff] p-3 sm:p-4">
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
             <button
               className={`inline-flex items-center justify-center gap-2 rounded-full border-[3px] border-black px-4 py-3 text-sm font-black text-black transition ${
@@ -414,7 +524,7 @@ function ArticleDetailsDialog({
               Dislike
             </button>
             <button
-              className="inline-flex items-center justify-center gap-2 rounded-full border-[3px] border-black bg-[#c9b8ff] px-4 py-3 text-sm font-black text-black transition hover:bg-white disabled:opacity-60"
+              className="inline-flex items-center justify-center gap-2 rounded-full border-[3px] border-black bg-white px-4 py-3 text-sm font-black text-black transition hover:bg-[#ffd24a] disabled:opacity-60"
               disabled={isSummarizing}
               onClick={onSummarize}
               type="button"
@@ -424,7 +534,7 @@ function ArticleDetailsDialog({
               ) : (
                 <Wand2 className="size-4" />
               )}
-              Summarize
+              {isSummarizing ? "Summarizing" : "Summarize"}
             </button>
             <button
               className="inline-flex items-center justify-center gap-2 rounded-full border-[3px] border-black bg-[#ffd24a] px-4 py-3 text-sm font-black text-black transition hover:bg-white disabled:opacity-60"
@@ -454,82 +564,6 @@ function ArticleDetailsDialog({
               </a>
             )}
           </div>
-
-          {!summary && (
-            <p className="rounded-2xl border-[3px] border-black bg-[#ffd24a] p-4 text-sm font-black text-black">
-              Tap Summarize to generate a clearer brief, why it matters, and source notes.
-            </p>
-          )}
-
-          {summary && (
-            <>
-          <div>
-            <h4 className="font-black uppercase text-slate-950 dark:text-white">
-              2-line summary
-            </h4>
-            <ul className="mt-2 space-y-2 break-words">
-              {summary.twoLineSummary.map((line) => (
-                <li key={line}>{line}</li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-black uppercase text-slate-950 dark:text-white">
-              Explain simply
-            </h4>
-            <p className="mt-2 break-words">{summary.explainSimply}</p>
-          </div>
-          <div>
-            <h4 className="font-black uppercase text-slate-950 dark:text-white">
-              Key takeaways
-            </h4>
-            <ul className="mt-2 list-disc space-y-1 break-words pl-5">
-              {summary.keyTakeaways.map((takeaway) => (
-                <li key={takeaway}>{takeaway}</li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-black uppercase text-slate-950 dark:text-white">
-              Why this matters
-            </h4>
-            <p className="mt-2 break-words">{summary.whyThisMatters}</p>
-          </div>
-          <div className="rounded-2xl border-[3px] border-black bg-[#ffd24a] p-4 text-black">
-            <h4 className="font-black uppercase">Potential bias / viewpoint note</h4>
-            <p className="mt-2 break-words">{summary.viewpointNote}</p>
-          </div>
-          <div>
-            <h4 className="font-black uppercase text-slate-950 dark:text-white">
-              Source citations
-            </h4>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {article.url ? (
-                <a
-                  className="rounded-full border-2 border-black bg-white px-3 py-1 text-xs font-black text-black transition hover:bg-[#c9b8ff]"
-                  href={article.url}
-                  rel="noreferrer"
-                  target="_blank"
-                >
-                  {article.source}
-                </a>
-              ) : (
-                <span className="rounded-full border-2 border-black bg-white px-3 py-1 text-xs font-black text-black">
-                  {article.source}
-                </span>
-              )}
-              <span className="rounded-full border-2 border-black bg-white px-3 py-1 text-xs font-black text-black">
-                Model {summary.model}
-              </span>
-              {summary.articleHash && (
-                <span className="rounded-full border-2 border-black bg-white px-3 py-1 text-xs font-black text-black">
-                  Summary ID {summary.articleHash.slice(0, 8)}
-                </span>
-              )}
-            </div>
-          </div>
-            </>
-          )}
         </div>
       </section>
     </div>
