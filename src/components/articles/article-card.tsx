@@ -27,6 +27,7 @@ export function ArticleCard({ article }: { article: ArticlePreview }) {
   const [isSaved, setIsSaved] = useState(false);
   const [isDisliked, setIsDisliked] = useState(false);
   const [isSummarizing, setIsSummarizing] = useState(false);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [summary, setSummary] = useState<CachedArticleSummary | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const canUseArticleActions = Boolean(article.article);
@@ -110,6 +111,7 @@ export function ArticleCard({ article }: { article: ArticlePreview }) {
       }
 
       setSummary(payload.data);
+      setIsDetailsOpen(true);
       sendAnalyticsEvent("summary_open", {
         articleId: article.id,
         source: article.source,
@@ -155,6 +157,14 @@ export function ArticleCard({ article }: { article: ArticlePreview }) {
     setMessage("Got it. You will see fewer like this.");
   }
 
+  function trackArticleOpen() {
+    sendAnalyticsEvent("article_open", {
+      articleId: article.id,
+      source: article.source,
+      category: article.category
+    });
+  }
+
   const title = (
     <h2 className="mt-4 text-xl font-black leading-tight tracking-normal text-black transition sm:text-2xl group-hover/link:text-[#2b0b64] dark:text-white dark:group-hover/link:text-[#ffd24a]">
       {article.title}
@@ -163,64 +173,42 @@ export function ArticleCard({ article }: { article: ArticlePreview }) {
 
   return (
     <article className="group flex min-h-[26rem] flex-col overflow-hidden rounded-[1.25rem] border-[3px] border-black bg-white shadow-[4px_4px_0_#050505] transition hover:-translate-y-1 hover:shadow-[7px_7px_0_#050505] sm:min-h-[30rem] sm:rounded-[1.5rem] sm:border-[4px] sm:shadow-[6px_6px_0_#050505] sm:hover:shadow-[10px_10px_0_#050505] dark:bg-slate-950">
-      {article.url ? (
-        <a
-          className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
-          href={article.url}
-          onClick={() =>
-            sendAnalyticsEvent("article_open", {
-              articleId: article.id,
-              source: article.source,
-              category: article.category
-            })
-          }
-          rel="noreferrer"
-          target="_blank"
-        >
-          <ArticleImage article={article} />
-        </a>
-      ) : (
+      <button
+        className="block w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
+        onClick={() => setIsDetailsOpen(true)}
+        type="button"
+      >
         <ArticleImage article={article} />
-      )}
+      </button>
 
       <div className="flex flex-1 flex-col p-5">
-        <div className="flex items-center justify-between gap-3 text-xs font-black uppercase text-slate-600 dark:text-slate-300">
-          <span className="truncate rounded-full bg-[#ffd24a] px-3 py-1 text-black">{article.source}</span>
-          <span className="flex shrink-0 items-center gap-1 rounded-full border-2 border-black px-3 py-1 text-black dark:border-white dark:text-white">
-            <Clock className="size-3.5" />
-            {article.readTime ?? "4 min"}
-          </span>
-        </div>
+        <button
+          className="text-left"
+          onClick={() => setIsDetailsOpen(true)}
+          type="button"
+        >
+          <div className="flex items-center justify-between gap-3 text-xs font-black uppercase text-slate-600 dark:text-slate-300">
+            <span className="truncate rounded-full bg-[#ffd24a] px-3 py-1 text-black">{article.source}</span>
+            <span className="flex shrink-0 items-center gap-1 rounded-full border-2 border-black px-3 py-1 text-black dark:border-white dark:text-white">
+              <Clock className="size-3.5" />
+              {article.readTime ?? "4 min"}
+            </span>
+          </div>
 
-        {article.url ? (
-          <a
-            className="group/link focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
-            href={article.url}
-            onClick={() =>
-              sendAnalyticsEvent("article_open", {
-                articleId: article.id,
-                source: article.source,
-                category: article.category
-              })
-            }
-            rel="noreferrer"
-            target="_blank"
-          >
+          <span className="group/link block">
             {title}
-          </a>
-        ) : (
-          title
-        )}
+          </span>
 
-        <p className="mt-3 line-clamp-3 text-sm font-medium leading-6 text-slate-700 dark:text-slate-300">
-          {article.summary}
-        </p>
-
-        {article.explanation && (
-          <p className="mt-3 rounded-xl border-2 border-black bg-[#f4f0ff] px-3 py-2 text-xs font-bold text-black">
-            {article.explanation}
+          <p className="mt-3 line-clamp-3 text-sm font-medium leading-6 text-slate-700 dark:text-slate-300">
+            {article.summary}
           </p>
-        )}
+
+          {article.explanation && (
+            <p className="mt-3 rounded-xl border-2 border-black bg-[#f4f0ff] px-3 py-2 text-xs font-bold text-black">
+              {article.explanation}
+            </p>
+          )}
+        </button>
 
         {message && (
           <p className="mt-4 rounded-xl border-[3px] border-black bg-[#ffd24a] px-3 py-2 text-xs font-bold text-black">
@@ -269,13 +257,7 @@ export function ArticleCard({ article }: { article: ArticlePreview }) {
                 aria-label="Open article"
                 className="grid size-9 place-items-center rounded-full border-[3px] border-black bg-black text-white transition hover:bg-[#2b0b64] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ffd24a] sm:size-10"
                 href={article.url}
-                onClick={() =>
-                  sendAnalyticsEvent("article_open", {
-                    articleId: article.id,
-                    source: article.source,
-                    category: article.category
-                  })
-                }
+                onClick={trackArticleOpen}
                 rel="noreferrer"
                 target="_blank"
                 title="Open"
@@ -299,13 +281,19 @@ export function ArticleCard({ article }: { article: ArticlePreview }) {
         </div>
       </div>
 
-      {summary && (
-        <SummaryDialog
-          source={article.source}
+      {isDetailsOpen && (
+        <ArticleDetailsDialog
+          article={article}
+          isDisliked={isDisliked}
+          isSaved={isSaved}
+          isSaving={isSaving}
+          isSummarizing={isSummarizing}
+          onClose={() => setIsDetailsOpen(false)}
+          onDislike={showFewerLikeThis}
+          onSave={saveArticle}
+          onSummarize={summarizeArticle}
+          onTrackOpen={trackArticleOpen}
           summary={summary}
-          title={article.title}
-          url={article.url}
-          onClose={() => setSummary(null)}
         />
       )}
     </article>
@@ -341,34 +329,57 @@ function ArticleImage({ article }: { article: ArticlePreview }) {
   );
 }
 
-function SummaryDialog({
+function ArticleDetailsDialog({
+  article,
+  isDisliked,
+  isSaved,
+  isSaving,
+  isSummarizing,
   onClose,
-  source,
-  summary,
-  title,
-  url
+  onDislike,
+  onSave,
+  onSummarize,
+  onTrackOpen,
+  summary
 }: {
+  article: ArticlePreview;
+  isDisliked: boolean;
+  isSaved: boolean;
+  isSaving: boolean;
+  isSummarizing: boolean;
   onClose: () => void;
-  source: string;
-  summary: CachedArticleSummary;
-  title: string;
-  url?: string;
+  onDislike: () => void;
+  onSave: () => void;
+  onSummarize: () => void;
+  onTrackOpen: () => void;
+  summary: CachedArticleSummary | null;
 }) {
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/70 px-4 py-6 backdrop-blur-sm">
-      <section className="w-full max-w-2xl overflow-hidden rounded-[1.5rem] border-[5px] border-black bg-white shadow-[12px_12px_0_#ffd24a] dark:bg-slate-950">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 px-3 py-4 backdrop-blur-sm sm:px-4 sm:py-6">
+      <section className="mx-auto w-full max-w-3xl overflow-hidden rounded-[1.25rem] border-[3px] border-black bg-white shadow-[7px_7px_0_#ffd24a] sm:rounded-[1.5rem] sm:border-[5px] sm:shadow-[12px_12px_0_#ffd24a] dark:bg-slate-950">
         <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0 p-5 pb-0">
+          <div className="min-w-0 p-4 pb-0 sm:p-5 sm:pb-0">
             <p className="text-sm font-black uppercase text-[#2b0b64] dark:text-[#ffd24a]">
-              Summary
+              Article brief
             </p>
-            <h3 className="mt-2 break-words text-xl font-black leading-tight text-black dark:text-white">
-              {title}
+            <h3 className="mt-2 break-words text-2xl font-black leading-tight text-black dark:text-white">
+              {article.title}
             </h3>
+            <div className="mt-3 flex flex-wrap gap-2 text-xs font-black uppercase text-black">
+              <span className="rounded-full border-2 border-black bg-[#ffd24a] px-3 py-1">
+                {article.source}
+              </span>
+              <span className="rounded-full border-2 border-black bg-white px-3 py-1">
+                {article.category}
+              </span>
+              <span className="rounded-full border-2 border-black bg-white px-3 py-1">
+                {article.publishedAt}
+              </span>
+            </div>
           </div>
           <button
-            aria-label="Close summary"
-            className="mr-5 mt-5 grid size-10 shrink-0 place-items-center rounded-full border-[3px] border-black bg-[#ffd24a] text-black"
+            aria-label="Close article brief"
+            className="mr-4 mt-4 grid size-10 shrink-0 place-items-center rounded-full border-[3px] border-black bg-[#ffd24a] text-black sm:mr-5 sm:mt-5"
             onClick={onClose}
             type="button"
           >
@@ -376,7 +387,82 @@ function SummaryDialog({
           </button>
         </div>
 
-        <div className="mt-5 max-h-[65vh] space-y-5 overflow-y-auto border-t-[4px] border-black p-5 text-sm font-medium leading-6 text-slate-700 dark:text-slate-300">
+        <div className="mt-5 space-y-5 border-t-[4px] border-black p-4 text-sm font-medium leading-6 text-slate-700 sm:p-5 dark:text-slate-300">
+          <div>
+            <h4 className="font-black uppercase text-slate-950 dark:text-white">
+              What this story says
+            </h4>
+            <p className="mt-2 break-words">{article.summary}</p>
+          </div>
+
+          {article.explanation && (
+            <div className="rounded-2xl border-[3px] border-black bg-[#f4f0ff] p-4 text-black">
+              <h4 className="font-black uppercase">Why you are seeing this</h4>
+              <p className="mt-2 break-words">{article.explanation}</p>
+            </div>
+          )}
+
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+            <button
+              className={`inline-flex items-center justify-center gap-2 rounded-full border-[3px] border-black px-4 py-3 text-sm font-black text-black transition ${
+                isDisliked ? "bg-[#ff6b6b]" : "bg-white hover:bg-[#f4f0ff]"
+              }`}
+              onClick={onDislike}
+              type="button"
+            >
+              <ThumbsDown className="size-4" />
+              Dislike
+            </button>
+            <button
+              className="inline-flex items-center justify-center gap-2 rounded-full border-[3px] border-black bg-[#c9b8ff] px-4 py-3 text-sm font-black text-black transition hover:bg-white disabled:opacity-60"
+              disabled={isSummarizing}
+              onClick={onSummarize}
+              type="button"
+            >
+              {isSummarizing ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Wand2 className="size-4" />
+              )}
+              Summarize
+            </button>
+            <button
+              className="inline-flex items-center justify-center gap-2 rounded-full border-[3px] border-black bg-[#ffd24a] px-4 py-3 text-sm font-black text-black transition hover:bg-white disabled:opacity-60"
+              disabled={isSaving}
+              onClick={onSave}
+              type="button"
+            >
+              {isSaving ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : isSaved ? (
+                <Check className="size-4" />
+              ) : (
+                <Bookmark className="size-4" />
+              )}
+              {isSaved ? "Saved" : "Save"}
+            </button>
+            {article.url && (
+              <a
+                className="inline-flex items-center justify-center gap-2 rounded-full border-[3px] border-black bg-black px-4 py-3 text-sm font-black text-white transition hover:bg-[#2b0b64]"
+                href={article.url}
+                onClick={onTrackOpen}
+                rel="noreferrer"
+                target="_blank"
+              >
+                <ExternalLink className="size-4" />
+                Read original
+              </a>
+            )}
+          </div>
+
+          {!summary && (
+            <p className="rounded-2xl border-[3px] border-black bg-[#ffd24a] p-4 text-sm font-black text-black">
+              Tap Summarize to generate a clearer brief, why it matters, and source notes.
+            </p>
+          )}
+
+          {summary && (
+            <>
           <div>
             <h4 className="font-black uppercase text-slate-950 dark:text-white">
               2-line summary
@@ -418,18 +504,18 @@ function SummaryDialog({
               Source citations
             </h4>
             <div className="mt-2 flex flex-wrap gap-2">
-              {url ? (
+              {article.url ? (
                 <a
                   className="rounded-full border-2 border-black bg-white px-3 py-1 text-xs font-black text-black transition hover:bg-[#c9b8ff]"
-                  href={url}
+                  href={article.url}
                   rel="noreferrer"
                   target="_blank"
                 >
-                  {source}
+                  {article.source}
                 </a>
               ) : (
                 <span className="rounded-full border-2 border-black bg-white px-3 py-1 text-xs font-black text-black">
-                  {source}
+                  {article.source}
                 </span>
               )}
               <span className="rounded-full border-2 border-black bg-white px-3 py-1 text-xs font-black text-black">
@@ -442,6 +528,8 @@ function SummaryDialog({
               )}
             </div>
           </div>
+            </>
+          )}
         </div>
       </section>
     </div>
